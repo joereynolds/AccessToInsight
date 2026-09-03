@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
-import '../../theme/app_colors.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/sutta_card.dart';
 import '../reader/sutta_reader_screen.dart';
@@ -78,10 +77,24 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                         onRefresh: _loadData,
                         child: ListView.builder(
                           itemCount: _bookmarks.length,
-                          itemBuilder: (ctx, i) => SuttaCard(
-                            item: _bookmarks[i],
-                            isBookmarked: true,
-                          ),
+                          itemBuilder: (ctx, i) {
+                            final item = _bookmarks[i];
+                            return Dismissible(
+                              key: ValueKey(item.id),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                color: Colors.red.shade700,
+                                child: const Icon(Icons.bookmark_remove, color: Colors.white),
+                              ),
+                              onDismissed: (_) async {
+                                setState(() => _bookmarks.removeAt(i));
+                                await DatabaseService.instance.toggleBookmark(item.id);
+                              },
+                              child: SuttaCard(item: item, isBookmarked: true),
+                            );
+                          },
                         ),
                       ),
 
@@ -102,50 +115,68 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                             final h = _history[i];
                             final progress = (h['progress'] as num?)?.toDouble() ?? 0.0;
                             final percent = (progress * 100).toInt();
+                            final textId = h['id'] as String;
 
-                            return ListTile(
-                              title: Text(
-                                h['title'] as String? ?? 'Untitled',
-                                style: const TextStyle(fontWeight: FontWeight.w600),
+                            return Dismissible(
+                              key: ValueKey(textId),
+                              direction: DismissDirection.endToStart,
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 20),
+                                color: Colors.red.shade700,
+                                child: const Icon(Icons.delete_outline, color: Colors.white),
                               ),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    h['sutta_ref'] as String? ?? h['nikaya_abbrev'] as String? ?? '',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Theme.of(context).colorScheme.primary,
+                              onDismissed: (_) async {
+                                setState(() => _history.removeAt(i));
+                                await DatabaseService.instance.deleteHistoryEntry(textId);
+                              },
+                              child: ListTile(
+                                title: Text(
+                                  h['title'] as String? ?? 'Untitled',
+                                  style: const TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      h['sutta_ref'] as String? ?? h['nikaya_abbrev'] as String? ?? '',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).colorScheme.primary,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(3),
-                                          child: LinearProgressIndicator(
-                                            value: progress,
-                                            minHeight: 4,
-                                            backgroundColor: isDark ? Colors.white12 : Colors.black12,
-                                            color: Theme.of(context).colorScheme.primary,
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(3),
+                                            child: LinearProgressIndicator(
+                                              value: progress,
+                                              minHeight: 4,
+                                              backgroundColor: isDark ? Colors.white12 : Colors.black12,
+                                              color: Theme.of(context).colorScheme.primary,
+                                            ),
                                           ),
                                         ),
+                                        const SizedBox(width: 8),
+                                        Text('$percent%', style: const TextStyle(fontSize: 11)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                trailing: const Icon(Icons.arrow_forward_ios, size: 13),
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => SuttaReaderScreen(
+                                        textId: textId,
+                                        initialProgress: progress,
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text('$percent%', style: const TextStyle(fontSize: 11)),
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  );
+                                },
                               ),
-                              trailing: const Icon(Icons.arrow_forward_ios, size: 13),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => SuttaReaderScreen(textId: h['id'] as String),
-                                  ),
-                                );
-                              },
                             );
                           },
                         ),

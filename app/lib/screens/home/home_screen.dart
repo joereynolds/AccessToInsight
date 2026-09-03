@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/daily_contemplation.dart';
 import '../../models/ptf_section.dart';
-import '../../models/text_item.dart';
 import '../../services/database_service.dart';
 import '../../theme/app_colors.dart';
 import '../reader/sutta_reader_screen.dart';
@@ -78,7 +77,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 19,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.4,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: isDark
+                        ? AppColors.saffronMuted
+                        : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -153,7 +154,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               onTap: () {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => SuttaReaderScreen(textId: h['id'] as String),
+                                    builder: (_) => SuttaReaderScreen(
+                                    textId: h['id'] as String,
+                                    initialProgress: progress,
+                                  ),
                                   ),
                                 );
                               },
@@ -179,7 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
-                                            color: Theme.of(context).colorScheme.primary,
+                                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -311,28 +315,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isDark ? AppColors.darkCard : AppColors.parchmentCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: isDark ? AppColors.darkBorder : AppColors.parchmentBorder,
-          ),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
         child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.3),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                icon,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            Icon(
+              icon,
+              size: 20,
+              color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
             ),
             const SizedBox(width: 10),
             Expanded(

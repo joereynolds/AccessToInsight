@@ -416,6 +416,11 @@ class DatabaseService {
     ''', [textId, progress, DateTime.now().millisecondsSinceEpoch]);
   }
 
+  Future<void> deleteHistoryEntry(String textId) async {
+    final db = await database;
+    await db.delete('reading_history', where: 'text_id = ?', whereArgs: [textId]);
+  }
+
   Future<List<Map<String, dynamic>>> getRecentReadingHistory({int limit = 10}) async {
     final db = await database;
     final rows = await db.rawQuery('''

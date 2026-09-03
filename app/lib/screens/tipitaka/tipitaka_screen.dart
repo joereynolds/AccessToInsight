@@ -55,7 +55,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
               'The Three Baskets of the Pāli Canon',
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.primary,
+                color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
               ),
             ),
           ],
@@ -95,10 +95,9 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
         abbrev: 'DN',
         title: 'Dīgha Nikāya',
         subtitle: 'The Long Collection (34 Suttas)',
-        description: 'Extensive, profound discourses on cosmology, ascetic practice, miracles, ethics, and the Buddha’s final days.',
+        description: 'Extensive, profound discourses on cosmology, ascetic practice, miracles, ethics, and the Buddha\'s final days.',
         count: _counts['DN'] ?? 16,
         collectionCode: 'dn',
-        color: const Color(0xFFD97706),
       ),
       _NikayaCardData(
         abbrev: 'MN',
@@ -107,7 +106,6 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
         description: 'Comprehensive core teachings: meditation on the breath, mindfulness frames, karma, similes, and dialogues with seekers.',
         count: _counts['MN'] ?? 142,
         collectionCode: 'mn',
-        color: const Color(0xFF2563EB),
       ),
       _NikayaCardData(
         abbrev: 'SN',
@@ -116,16 +114,14 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
         description: 'Thematic groupings on Dependent Co-arising, the 5 Aggregates, the 6 Sense Bases, the Noble Eightfold Path, and the 4 Truths.',
         count: _counts['SN'] ?? 300,
         collectionCode: 'sn',
-        color: const Color(0xFF059669),
       ),
       _NikayaCardData(
         abbrev: 'AN',
         title: 'Aṅguttara Nikāya',
         subtitle: 'The Further-Factored Collection (Numbered Sets 1 to 11)',
-        description: 'The Buddha’s analytical teachings organized numerically: from the single thing to cultivate up to eleven factors of awakening.',
+        description: 'The Buddha\'s analytical teachings organized numerically: from the single thing to cultivate up to eleven factors of awakening.',
         count: _counts['AN'] ?? 300,
         collectionCode: 'an',
-        color: const Color(0xFF9333EA),
       ),
     ];
 
@@ -143,40 +139,6 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
     return ListView(
       padding: const EdgeInsets.symmetric(vertical: 16),
       children: [
-        // Intro Card
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: (Theme.of(context).colorScheme.primary).withOpacity(0.2),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.auto_stories,
-                size: 20,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'The Sutta Piṭaka holds over 1,000 translations across the Five Great Nikāyas.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.4,
-                    color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-
         // Four Main Nikayas
         ...nikayas.map((n) => _buildNikayaCard(context, n)),
 
@@ -188,33 +150,13 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Khuddaka Nikāya',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'KN: MINOR TEXTS',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                'Khuddaka Nikāya',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? AppColors.darkText : AppColors.parchmentText,
+                ),
               ),
               const SizedBox(height: 2),
               Text(
@@ -280,19 +222,12 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.3),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              item.abbrev,
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
+                          Text(
+                            item.abbrev,
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                             ),
                           ),
                           Icon(
@@ -358,19 +293,12 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: n.color.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      n.abbrev,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                        color: n.color,
-                      ),
+                  Text(
+                    n.abbrev,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -422,7 +350,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
         _buildActionTile(
           context,
           title: 'The Buddhist Monastic Code (Vol. I & II)',
-          subtitle: 'Thanissaro Bhikkhu’s detailed commentary on the Pātimokkha',
+          subtitle: 'Thanissaro Bhikkhu\'s detailed commentary on the Pātimokkha',
           path: 'tipitaka/vin/index.html',
         ),
         const SizedBox(height: 8),
@@ -484,14 +412,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
         children: [
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(icon, color: Theme.of(context).colorScheme.primary),
-              ),
+              Icon(icon, color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -557,7 +478,6 @@ class _NikayaCardData {
   final String description;
   final int count;
   final String collectionCode;
-  final Color color;
 
   _NikayaCardData({
     required this.abbrev,
@@ -566,7 +486,6 @@ class _NikayaCardData {
     required this.description,
     required this.count,
     required this.collectionCode,
-    required this.color,
   });
 }
 

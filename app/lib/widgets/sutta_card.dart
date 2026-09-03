@@ -38,45 +38,43 @@ class SuttaCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header badges & metadata
+              // Title + reading time
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (item.displayReference.isNotEmpty)
-                    Text(
-                      item.displayReference,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Theme.of(context).colorScheme.primary,
+                  Expanded(
+                    child: Text(
+                      item.title,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        height: 1.25,
                       ),
                     ),
-                  const Spacer(),
-                  Icon(
-                    Icons.schedule,
-                    size: 13,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${item.readingTimeMinutes} min',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                  const SizedBox(width: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          size: 13,
+                          color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${item.readingTimeMinutes} min',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
-              const SizedBox(height: 10),
-
-              // Title
-              Text(
-                item.title,
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700,
-                  height: 1.25,
-                ),
               ),
 
               // Subtitle

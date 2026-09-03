@@ -15,8 +15,9 @@ import 'reader_settings_sheet.dart';
 
 class SuttaReaderScreen extends StatefulWidget {
   final String textId;
+  final double? initialProgress;
 
-  const SuttaReaderScreen({super.key, required this.textId});
+  const SuttaReaderScreen({super.key, required this.textId, this.initialProgress});
 
   @override
   State<SuttaReaderScreen> createState() => _SuttaReaderScreenState();
@@ -26,6 +27,7 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
   TextItem? _item;
   bool _isLoading = true;
   bool _isBookmarked = false;
+  bool _showPositionHighlight = false;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -72,12 +74,37 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
           _isBookmarked = bookmarked;
           _isLoading = false;
         });
+        _restoreScrollPosition();
       }
     } else {
       if (mounted) {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  void _restoreScrollPosition() {
+    final progress = widget.initialProgress;
+    if (progress == null || progress <= 0.0) return;
+    // Wait for HtmlWidget to finish laying out before scrolling
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 600), () {
+        if (!mounted || !_scrollController.hasClients) return;
+        final target = (_scrollController.position.maxScrollExtent * progress).clamp(
+          0.0,
+          _scrollController.position.maxScrollExtent,
+        );
+        _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeOut,
+        );
+        setState(() => _showPositionHighlight = true);
+        Future.delayed(const Duration(milliseconds: 2500), () {
+          if (mounted) setState(() => _showPositionHighlight = false);
+        });
+      });
+    });
   }
 
   Future<void> _toggleBookmark() async {
@@ -132,7 +159,7 @@ https://accesstoinsight.org/${_item!.path}
           return true;
         }
       }
-      return true;
+      return false;
     }
 
     // Relative internal sutta link e.g. ../../tipitaka/mn/mn.10.than.html
@@ -329,7 +356,9 @@ https://accesstoinsight.org/${_item!.path}
           ),
         ],
       ),
-      body: Scrollbar(
+      body: Stack(
+        children: [
+          Scrollbar(
         controller: _scrollController,
         child: SingleChildScrollView(
           controller: _scrollController,
@@ -486,6 +515,28 @@ https://accesstoinsight.org/${_item!.path}
             ],
           ),
         ),
+          ),
+          // Reading position highlight — fades in then out
+          AnimatedOpacity(
+            opacity: _showPositionHighlight ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 600),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: Container(
+                height: 3,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.0),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                      Theme.of(context).colorScheme.primary.withValues(alpha: 0.0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
