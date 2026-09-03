@@ -8,7 +8,6 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../reader/sutta_reader_screen.dart';
 import '../search/search_screen.dart';
-import '../tipitaka/tipitaka_screen.dart';
 import 'daily_contemplation_card.dart';
 import 'gradual_path_preview.dart';
 import 'starter_tracks.dart';
@@ -162,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => SuttaReaderScreen(
-                                textId: h['id'] as String,
+                                textId: h['text_id'] as String,
                                 initialProgress: progress,
                               ),
                             ),
@@ -224,32 +223,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (_ptfSections.isNotEmpty)
                       GradualPathPreview(sections: _ptfSections, headingColor: headingColor),
 
-                    const SizedBox(height: 16),
-                    const Divider(height: 1),
-                    const SizedBox(height: 16),
-
-                    // Browse
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        'Browse',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
-                          color: headingColor,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    _buildBrowseRow(context, 'Tipiṭaka', () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const TipitakaScreen()),
-                      );
-                    }, isDark),
-                    _buildBrowseRow(context, 'Thai Forest Tradition', () => widget.onTabChange?.call(1), isDark),
-                    _buildBrowseRow(context, 'Similes & Parables', () => widget.onTabChange?.call(2), isDark),
-                    _buildBrowseRow(context, 'Pāli Glossary', () => widget.onTabChange?.call(2), isDark),
                   ],
                 ),
               ),
@@ -257,22 +230,4 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBrowseRow(BuildContext context, String title, VoidCallback? onTap, bool isDark) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-        child: Row(
-          children: [
-            Expanded(child: Text(title, style: const TextStyle(fontSize: 14))),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 11,
-              color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/simile_item.dart';
-import '../theme/app_colors.dart';
 import '../screens/reader/sutta_reader_screen.dart';
 
 class SimileCard extends StatelessWidget {
@@ -10,8 +9,6 @@ class SimileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
@@ -39,17 +36,10 @@ class SimileCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.lightbulb_outline,
-                      size: 20,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                  Icon(
+                    Icons.lightbulb_outline,
+                    size: 20,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -67,7 +57,7 @@ class SimileCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white10 : AppColors.parchmentSurface,
+                            color: Theme.of(context).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -89,7 +79,7 @@ class SimileCard extends StatelessWidget {
                 'Canonical references: ${item.suttaRef}',
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                   height: 1.35,
                 ),
               ),

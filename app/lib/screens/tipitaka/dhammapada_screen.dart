@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../models/dhp_verse.dart';
 import '../../services/database_service.dart';
-import '../../theme/app_colors.dart';
 import '../../widgets/empty_state.dart';
 
 class DhammapadaScreen extends StatefulWidget {
@@ -77,7 +76,7 @@ Access to Insight
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -87,10 +86,7 @@ Access to Insight
             const Text('Dhammapada', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             Text(
               '26 Vaggas • 423 Verses of Truth',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              style: TextStyle(fontSize: 12, color: cs.primary),
             ),
           ],
         ),
@@ -103,11 +99,9 @@ Access to Insight
                 Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: isDark ? AppColors.darkCard : AppColors.parchmentSurface,
+                    color: cs.surfaceContainerHighest,
                     border: Border(
-                      bottom: BorderSide(
-                        color: isDark ? AppColors.darkBorder : AppColors.parchmentBorder,
-                      ),
+                      bottom: BorderSide(color: cs.outlineVariant),
                     ),
                   ),
                   child: ListView.builder(
@@ -123,13 +117,11 @@ Access to Insight
                         child: ChoiceChip(
                           label: Text('Ch. $cNum: ${c['chapter_title']}'),
                           selected: isSelected,
-                          selectedColor: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.6),
+                          selectedColor: cs.primary.withValues(alpha: 0.2),
                           labelStyle: TextStyle(
                             fontSize: 12,
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            color: isSelected
-                                ? (Theme.of(context).colorScheme.primary)
-                                : null,
+                            color: isSelected ? cs.primary : null,
                           ),
                           onSelected: (selected) {
                             if (selected) {
@@ -150,7 +142,7 @@ Access to Insight
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.3),
+                          color: cs.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -158,7 +150,7 @@ Access to Insight
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: Theme.of(context).colorScheme.primary,
+                            color: cs.primary,
                           ),
                         ),
                       ),
@@ -176,7 +168,7 @@ Access to Insight
                         '${_verses.length} verses',
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                          color: cs.onSurface.withValues(alpha: 0.5),
                         ),
                       ),
                     ],
@@ -208,13 +200,13 @@ Access to Insight
                                           children: [
                                             CircleAvatar(
                                               radius: 12,
-                                              backgroundColor: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.4),
+                                              backgroundColor: cs.primary.withValues(alpha: 0.12),
                                               child: Text(
                                                 '${v.verseNum}',
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.bold,
-                                                  color: Theme.of(context).colorScheme.primary,
+                                                  color: cs.primary,
                                                 ),
                                               ),
                                             ),
@@ -224,7 +216,7 @@ Access to Insight
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w700,
-                                                color: Theme.of(context).colorScheme.primary,
+                                                color: cs.primary,
                                               ),
                                             ),
                                             const Spacer(),
@@ -238,11 +230,10 @@ Access to Insight
                                         const SizedBox(height: 8),
                                         Text(
                                           v.verseText,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             height: 1.5,
                                             fontFamily: 'serif',
-                                            color: isDark ? AppColors.darkText : AppColors.parchmentText,
                                           ),
                                         ),
                                       ],

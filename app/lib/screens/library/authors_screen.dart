@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
-import '../../theme/app_colors.dart';
 import '../reader/sutta_reader_screen.dart';
 
 class AuthorsScreen extends StatefulWidget {
@@ -57,7 +56,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -73,13 +72,11 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                 hintText: 'Search authors...',
                 prefixIcon: const Icon(Icons.search, size: 20),
                 filled: true,
-                fillColor: isDark ? AppColors.darkCard : AppColors.parchmentCard,
+                fillColor: cs.surfaceContainerHighest,
                 contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: isDark ? AppColors.darkBorder : AppColors.parchmentBorder,
-                  ),
+                  borderSide: BorderSide(color: cs.outlineVariant),
                 ),
               ),
             ),
@@ -97,12 +94,12 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
 
                       return ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
+                          backgroundColor: cs.primary.withValues(alpha: 0.12),
                           child: Text(
                             name.isNotEmpty ? name[0] : '?',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
+                              color: cs.primary,
                             ),
                           ),
                         ),
@@ -143,7 +140,10 @@ class AuthorWorksScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(authorName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-            Text('${texts.length} works', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text(
+              '${texts.length} works',
+              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+            ),
           ],
         ),
       ),

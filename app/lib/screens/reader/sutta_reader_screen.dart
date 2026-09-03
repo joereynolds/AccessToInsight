@@ -331,7 +331,7 @@ https://accesstoinsight.org/${_item!.path}
           IconButton(
             icon: Icon(
               _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-              color: _isBookmarked ? AppColors.saffron : null,
+              color: _isBookmarked ? Theme.of(context).colorScheme.primary : null,
             ),
             tooltip: 'Bookmark',
             onPressed: _toggleBookmark,
@@ -347,10 +347,11 @@ https://accesstoinsight.org/${_item!.path}
             onPressed: () {
               showModalBottomSheet(
                 context: context,
+                isScrollControlled: true,
                 shape: const RoundedRectangleBorder(
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
-                builder: (ctx) => const ReaderSettingsSheet(),
+                builder: (_) => const ReaderSettingsSheet(),
               );
             },
           ),
@@ -485,31 +486,23 @@ https://accesstoinsight.org/${_item!.path}
               const SizedBox(height: 16),
 
               // Footer License & Provenance
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white10 : Colors.black.withOpacity(0.03),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Attribution & License',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Attribution & License',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Access to Insight (BCBS Edition). Transcribed from original files by ${item.author}. ${item.license ?? "Licensed under Creative Commons"}.',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                      height: 1.4,
                     ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Access to Insight (BCBS Edition). Transcribed from original files by ${item.author}. ${item.license ?? "Licensed under Creative Commons"}.',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               const SizedBox(height: 48),
             ],

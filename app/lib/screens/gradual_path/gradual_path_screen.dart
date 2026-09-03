@@ -60,10 +60,10 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: (Theme.of(context).colorScheme.primary).withOpacity(0.3),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Column(
@@ -139,7 +139,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: Center(
@@ -160,11 +160,13 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          s.title,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                        Expanded(
+                          child: Text(
+                            s.title,
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
                       ],
                     ),

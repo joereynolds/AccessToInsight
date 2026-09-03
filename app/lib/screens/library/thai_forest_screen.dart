@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
-import '../../theme/app_colors.dart';
 import '../reader/sutta_reader_screen.dart';
 
 class ThaiForestScreen extends StatelessWidget {
@@ -9,8 +8,6 @@ class ThaiForestScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final masters = [
       _MasterInfo(
         slug: 'chah',
@@ -103,15 +100,15 @@ class ThaiForestScreen extends StatelessWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.darkCard : AppColors.parchmentSurface,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isDark ? AppColors.darkBorder : AppColors.parchmentBorder,
+                color: Theme.of(context).colorScheme.outlineVariant,
               ),
             ),
             child: Column(
@@ -121,7 +118,7 @@ class ThaiForestScreen extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.forest,
-                      color: isDark ? AppColors.saffronMuted : AppColors.forestSage,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -129,19 +126,15 @@ class ThaiForestScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.saffronMuted : AppColors.forestSage,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  'Founded in the deep jungles of northeast Thailand by Ajaan Mun, the Forest Tradition returns to the simplicity, wilderness austerity, and practical meditation of the Buddha’s original disciples.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.45,
-                    color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                  ),
+                const Text(
+                  "Founded in the deep jungles of northeast Thailand by Ajaan Mun, the Forest Tradition returns to the simplicity, wilderness austerity, and practical meditation of the Buddha's original disciples.",
+                  style: TextStyle(fontSize: 13, height: 1.45),
                 ),
               ],
             ),
@@ -154,7 +147,7 @@ class ThaiForestScreen extends StatelessWidget {
   }
 
   Widget _buildMasterCard(BuildContext context, _MasterInfo m) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -178,8 +171,8 @@ class ThaiForestScreen extends StatelessWidget {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
-                    child: Icon(m.icon, color: Theme.of(context).colorScheme.primary),
+                    backgroundColor: cs.primary.withValues(alpha: 0.12),
+                    child: Icon(m.icon, color: cs.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -195,23 +188,19 @@ class ThaiForestScreen extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontStyle: FontStyle.italic,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                            color: cs.onSurface.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                  Icon(Icons.arrow_forward_ios, size: 14, color: cs.onSurface.withValues(alpha: 0.4)),
                 ],
               ),
               const SizedBox(height: 10),
               Text(
                 m.bio,
-                style: TextStyle(
-                  fontSize: 13,
-                  height: 1.4,
-                  color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                ),
+                style: const TextStyle(fontSize: 13, height: 1.4),
               ),
             ],
           ),
@@ -229,8 +218,6 @@ class _MasterWorksScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -241,7 +228,7 @@ class _MasterWorksScreen extends StatelessWidget {
               '${texts.length} talks & books',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],

@@ -92,6 +92,19 @@ class DatabaseService {
     return map;
   }
 
+  // --- All Texts (metadata only — no content_html/content_plain) ---
+  Future<List<TextItem>> getAllTextsMetadata() async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT rowid, id, path, title, subtitle, sutta_ref, nikaya, nikaya_abbrev,
+             collection, author, author_short, pts_id, type, summary,
+             word_count, year, license
+      FROM texts
+      ORDER BY nikaya_abbrev ASC, collection ASC, title ASC
+    ''');
+    return rows.map((e) => TextItem.fromMap(e)).toList();
+  }
+
   // --- Text Queries ---
   Future<List<TextItem>> getTextsByNikaya(String nikayaAbbrev, {int limit = 100, int offset = 0}) async {
     final db = await database;
@@ -249,13 +262,18 @@ class DatabaseService {
   // --- Study Guides ---
   Future<List<TextItem>> getStudyGuides() async {
     final db = await database;
-    final rows = await db.query(
-      'texts',
-      where: 'collection = ? OR path LIKE ?',
-      whereArgs: ['study', 'lib/study/%'],
-      orderBy: 'title ASC',
-    );
-    return rows.map((e) => TextItem.fromMap(e)).toList();
+    final rows = await db.rawQuery('''
+      SELECT * FROM texts
+      WHERE collection = 'study'
+        AND (
+          path NOT LIKE 'lib/study/%/%'
+          OR path LIKE 'lib/study/%/index.html'
+        )
+        AND path != 'lib/study/index.html'
+        AND path != 'lib/study/beyondcoping.html'
+      ORDER BY title ASC
+    ''');
+    return rows.map((e) => Map<String, dynamic>.from(e)).map((e) => TextItem.fromMap(e)).toList();
   }
 
   // --- Path to Freedom Sections ---
@@ -418,19 +436,23 @@ class DatabaseService {
 
   Future<void> deleteHistoryEntry(String textId) async {
     final db = await database;
-    await db.delete('reading_history', where: 'text_id = ?', whereArgs: [textId]);
+    await db.rawDelete(
+      'DELETE FROM reading_history WHERE text_id = ?',
+      [textId],
+    );
   }
 
   Future<List<Map<String, dynamic>>> getRecentReadingHistory({int limit = 10}) async {
     final db = await database;
     final rows = await db.rawQuery('''
-      SELECT texts.id, texts.title, texts.subtitle, texts.sutta_ref, texts.nikaya_abbrev,
+      SELECT texts.id AS text_id, texts.title, texts.subtitle, texts.sutta_ref, texts.nikaya_abbrev,
              reading_history.progress, reading_history.last_read_at
       FROM reading_history
       JOIN texts ON texts.id = reading_history.text_id
       ORDER BY reading_history.last_read_at DESC
       LIMIT ?
     ''', [limit]);
-    return rows;
+    // Return a mutable copy — sqflite's QueryResultSet is read-only
+    return rows.map((r) => Map<String, dynamic>.from(r)).toList();
   }
 }

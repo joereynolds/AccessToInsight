@@ -13,6 +13,7 @@ class StarterTracks extends StatelessWidget {
     final tracks = [
       _Track(
         title: 'New to the Teachings',
+        description: 'Start here — what the Buddha taught and why it matters.',
         items: [
           _TrackItem('What is Theravada Buddhism?', 'theravada.html'),
           _TrackItem('Befriending the Suttas', 'befriending.html'),
@@ -22,6 +23,7 @@ class StarterTracks extends StatelessWidget {
       ),
       _Track(
         title: 'Meditation & Mindfulness',
+        description: 'Practical instruction on developing attention and clarity of mind.',
         items: [
           _TrackItem('Mindfulness of Breathing', 'tipitaka/mn/mn.118.than.html'),
           _TrackItem('Four Frames of Reference', 'tipitaka/mn/mn.010.than.html'),
@@ -31,6 +33,7 @@ class StarterTracks extends StatelessWidget {
       ),
       _Track(
         title: 'Wisdom & Liberation',
+        description: 'Teachings on the nature of self, suffering, and the path to freedom.',
         items: [
           _TrackItem('The Non-Self Characteristic', 'tipitaka/sn/sn22/sn22.059.than.html'),
           _TrackItem('The Arrow of Grief & Pain', 'tipitaka/sn/sn36/sn36.006.than.html'),
@@ -40,11 +43,12 @@ class StarterTracks extends StatelessWidget {
       ),
       _Track(
         title: 'Dhamma for Everyday Life',
+        description: 'How the teachings apply to work, relationships, and lay practice.',
         items: [
-          _TrackItem('The Layperson\'s Code of Discipline', 'tipitaka/dn/dn.31.0.kimb.html'),
+          _TrackItem('The Layperson\'s Code of Discipline', 'tipitaka/dn/dn.31.0.nara.html'),
           _TrackItem('To the Kalamas: Free Inquiry', 'tipitaka/an/an03/an03.065.than.html'),
           _TrackItem('Loving-Kindness (Metta)', 'tipitaka/kn/snp/snp.1.08.than.html'),
-          _TrackItem('Supreme Blessings', 'tipitaka/kn/khp/khp.5.piya.html'),
+          _TrackItem('Supreme Blessings (Maṅgala Sutta)', 'tipitaka/kn/khp/khp.5.nara.html'),
         ],
       ),
     ];
@@ -65,23 +69,34 @@ class StarterTracks extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        ...tracks.map((t) => _buildTrack(context, t, isDark)),
+        ...tracks.map((t) => _buildTrack(context, t, isDark, headingColor)),
       ],
     );
   }
 
-  Widget _buildTrack(BuildContext context, _Track t, bool isDark) {
+  Widget _buildTrack(BuildContext context, _Track t, bool isDark, Color headingColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 2),
           child: Text(
             t.title,
             style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: headingColor,
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          child: Text(
+            t.description,
+            style: TextStyle(
               fontSize: 12,
-              fontWeight: FontWeight.w600,
               color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+              height: 1.35,
             ),
           ),
         ),
@@ -119,8 +134,9 @@ class StarterTracks extends StatelessWidget {
 
 class _Track {
   final String title;
+  final String description;
   final List<_TrackItem> items;
-  _Track({required this.title, required this.items});
+  _Track({required this.title, required this.description, required this.items});
 }
 
 class _TrackItem {

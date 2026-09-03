@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
-import '../../theme/app_colors.dart';
 import '../reader/sutta_reader_screen.dart';
 
 class StudyGuidesScreen extends StatefulWidget {
@@ -33,7 +32,7 @@ class _StudyGuidesScreenState extends State<StudyGuidesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -47,21 +46,17 @@ class _StudyGuidesScreenState extends State<StudyGuidesScreen> {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.collections_bookmark_outlined, color: Theme.of(context).colorScheme.primary),
+                      Icon(Icons.collections_bookmark_outlined, color: cs.primary),
                       const SizedBox(width: 10),
-                      Expanded(
+                      const Expanded(
                         child: Text(
                           'Thematic anthologies and structured reading courses suitable for individual reflection and study groups.',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                            height: 1.4,
-                          ),
+                          style: TextStyle(fontSize: 12, height: 1.4),
                         ),
                       ),
                     ],

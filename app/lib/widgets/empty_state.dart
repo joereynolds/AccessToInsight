@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 class EmptyState extends StatelessWidget {
   final IconData icon;
@@ -17,24 +16,16 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                size: 38,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+            Icon(
+              icon,
+              size: 38,
+              color: Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(height: 16),
             Text(
@@ -51,7 +42,7 @@ class EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
                 height: 1.4,
               ),
             ),

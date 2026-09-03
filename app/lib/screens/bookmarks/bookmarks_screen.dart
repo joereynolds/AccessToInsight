@@ -115,7 +115,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                             final h = _history[i];
                             final progress = (h['progress'] as num?)?.toDouble() ?? 0.0;
                             final percent = (progress * 100).toInt();
-                            final textId = h['id'] as String;
+                            final textId = h['text_id'] as String;
 
                             return Dismissible(
                               key: ValueKey(textId),

@@ -50,6 +50,7 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
     if (idx == 4) {
       showModalBottomSheet(
         context: context,
+        isScrollControlled: true,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
