@@ -68,11 +68,91 @@ class DatabaseService {
     initProgressNotifier.value = 1.0;
     initStatusNotifier.value = 'Ready';
 
-    return await openDatabase(
-      dbPath,
-      readOnly: false,
-      singleInstance: true,
+    final db = await openDatabase(dbPath, readOnly: false, singleInstance: true);
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS collections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        description TEXT,
+        created_at INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS collection_items (
+        collection_id INTEGER NOT NULL,
+        text_id TEXT NOT NULL,
+        added_at INTEGER NOT NULL,
+        PRIMARY KEY (collection_id, text_id),
+        FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
+      )
+    ''');
+    return db;
+  }
+
+  // --- Collections ---
+  Future<List<Map<String, dynamic>>> getCollections() async {
+    final db = await database;
+    return (await db.query('collections', orderBy: 'created_at ASC'))
+        .map((r) => Map<String, dynamic>.from(r))
+        .toList();
+  }
+
+  Future<int> createCollection(String name, {String? description}) async {
+    final db = await database;
+    return db.insert('collections', {
+      'name': name,
+      'description': description,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  Future<void> updateCollection(int id, String name, {String? description}) async {
+    final db = await database;
+    await db.update(
+      'collections',
+      {'name': name, 'description': description},
+      where: 'id = ?',
+      whereArgs: [id],
     );
+  }
+
+  Future<void> deleteCollection(int id) async {
+    final db = await database;
+    await db.delete('collections', where: 'id = ?', whereArgs: [id]);
+    await db.delete('collection_items', where: 'collection_id = ?', whereArgs: [id]);
+  }
+
+  Future<List<TextItem>> getCollectionItems(int collectionId) async {
+    final db = await database;
+    final rows = await db.rawQuery('''
+      SELECT texts.* FROM collection_items
+      JOIN texts ON texts.id = collection_items.text_id
+      WHERE collection_items.collection_id = ?
+      ORDER BY collection_items.added_at ASC
+    ''', [collectionId]);
+    return rows.map((e) => Map<String, dynamic>.from(e)).map(TextItem.fromMap).toList();
+  }
+
+  Future<Set<int>> getCollectionIdsForText(String textId) async {
+    final db = await database;
+    final rows = await db.query('collection_items',
+        columns: ['collection_id'], where: 'text_id = ?', whereArgs: [textId]);
+    return rows.map((r) => r['collection_id'] as int).toSet();
+  }
+
+  Future<void> addToCollection(int collectionId, String textId) async {
+    final db = await database;
+    await db.insert('collection_items', {
+      'collection_id': collectionId,
+      'text_id': textId,
+      'added_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+  }
+
+  Future<void> removeFromCollection(int collectionId, String textId) async {
+    final db = await database;
+    await db.delete('collection_items',
+        where: 'collection_id = ? AND text_id = ?', whereArgs: [collectionId, textId]);
   }
 
   // --- Tipitaka Counters ---

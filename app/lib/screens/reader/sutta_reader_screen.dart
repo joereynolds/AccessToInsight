@@ -9,6 +9,7 @@ import '../../providers/app_state_provider.dart';
 import '../../services/database_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
+import '../../widgets/add_to_collection_sheet.dart';
 import '../library/authors_screen.dart';
 import 'footnotes_sheet.dart';
 import 'reader_settings_sheet.dart';
@@ -335,6 +336,13 @@ https://accesstoinsight.org/${_item!.path}
             ),
             tooltip: 'Bookmark',
             onPressed: _toggleBookmark,
+          ),
+          IconButton(
+            icon: const Icon(Icons.playlist_add),
+            tooltip: 'Add to Collection',
+            onPressed: () {
+              if (_item != null) showAddToCollectionSheet(context, _item!.id);
+            },
           ),
           IconButton(
             icon: const Icon(Icons.share_outlined),

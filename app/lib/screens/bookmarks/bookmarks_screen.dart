@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
+import '../../widgets/add_to_collection_sheet.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/sutta_card.dart';
 import '../reader/sutta_reader_screen.dart';
+import 'collections_screen.dart';
 
 class BookmarksScreen extends StatefulWidget {
   const BookmarksScreen({super.key});
@@ -16,12 +18,13 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
   late TabController _tabController;
   List<TextItem> _bookmarks = [];
   List<Map<String, dynamic>> _history = [];
+  int _collectionsCount = 0;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadData();
   }
 
@@ -35,10 +38,12 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
     setState(() => _isLoading = true);
     final b = await DatabaseService.instance.getBookmarkedTexts();
     final h = await DatabaseService.instance.getRecentReadingHistory(limit: 30);
+    final c = await DatabaseService.instance.getCollections();
     if (mounted) {
       setState(() {
         _bookmarks = b;
         _history = h;
+        _collectionsCount = c.length;
         _isLoading = false;
       });
     }
@@ -57,17 +62,18 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
           labelColor: Theme.of(context).colorScheme.primary,
           tabs: [
             Tab(text: 'Bookmarks (${_bookmarks.length})'),
-            Tab(text: 'Reading History (${_history.length})'),
+            Tab(text: 'History (${_history.length})'),
+            Tab(text: 'Collections ($_collectionsCount)'),
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
+      body: TabBarView(
               controller: _tabController,
               children: [
                 // Bookmarks Tab
-                _bookmarks.isEmpty
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _bookmarks.isEmpty
                     ? const EmptyState(
                         icon: Icons.bookmark_border,
                         title: 'No Bookmarks Yet',
@@ -92,14 +98,19 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                                 setState(() => _bookmarks.removeAt(i));
                                 await DatabaseService.instance.toggleBookmark(item.id);
                               },
-                              child: SuttaCard(item: item, isBookmarked: true),
+                              child: GestureDetector(
+                                onLongPress: () => showAddToCollectionSheet(context, item.id),
+                                child: SuttaCard(item: item, isBookmarked: true),
+                              ),
                             );
                           },
                         ),
                       ),
 
                 // History Tab
-                _history.isEmpty
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _history.isEmpty
                     ? const EmptyState(
                         icon: Icons.history,
                         title: 'No Reading History',
@@ -166,6 +177,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                                   ],
                                 ),
                                 trailing: const Icon(Icons.arrow_forward_ios, size: 13),
+                                onLongPress: () => showAddToCollectionSheet(context, textId),
                                 onTap: () {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
@@ -181,6 +193,9 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                           },
                         ),
                       ),
+
+                // Collections Tab
+                const CollectionsScreen(),
               ],
             ),
     );
