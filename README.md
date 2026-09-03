@@ -1,5 +1,29 @@
-Access To Insight
-=================
+# Access To Insight
+
+## This fork
+
+This fork preserves all of the accesstoinsight website in its entirety with no
+modifications to any of its content.
+
+The addition that has been made is a mobile app called AccessToInsight.
+
+There already exists an AccessToInsight app but it hasn't been updated in a
+very very long time and is essentially just a web view of the accesstoinsight
+website, not really offering many modern conveniences.
+
+With the application built in this repo, you are able to:
+
+- Search for anything
+- Bookmark your favourite content 
+- Categorise content into your own personal collections
+- Maintain a recently read list
+- Read any of the 1800+ texts completely offline
+
+There are bound to be issues as it's a massive amount of content. If you see
+anythig fishy, raise an issue.
+
+## Access To Insight
+
 
 Access to Insight is an Internet website dedicated to providing accurate, reliable, and useful information concerning the practice and study of Theravada Buddhism, as it has been handed down to us through both the written word of the Pali canon and the living example of the Sangha.
 
