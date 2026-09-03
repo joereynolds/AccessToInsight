@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/daily_contemplation.dart';
 import '../../models/ptf_section.dart';
+import '../../providers/app_state_provider.dart';
 import '../../services/database_service.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_theme.dart';
 import '../reader/sutta_reader_screen.dart';
 import '../search/search_screen.dart';
+import '../tipitaka/tipitaka_screen.dart';
 import 'daily_contemplation_card.dart';
 import 'gradual_path_preview.dart';
 import 'starter_tracks.dart';
@@ -60,9 +64,19 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Color _headingColor(BuildContext context, bool isDark) {
+    if (isDark) return AppColors.saffronMuted;
+    final style = context.read<AppStateProvider>().settings.themeStyle;
+    if (style == AppThemeStyle.insight || style == AppThemeStyle.monochrome) {
+      return AppColors.parchmentText;
+    }
+    return AppColors.terracotta;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final headingColor = _headingColor(context, isDark);
 
     return Scaffold(
       appBar: AppBar(
@@ -126,176 +140,116 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     // Recent Reading (if any)
                     if (_recentHistory.isNotEmpty) ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'Continue Reading',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 13,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.darkText : AppColors.parchmentText,
+                            letterSpacing: 0.4,
+                            color: headingColor,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 90,
-                        child: ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _recentHistory.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 10),
-                          itemBuilder: (ctx, i) {
-                            final h = _recentHistory[i];
-                            final progress = (h['progress'] as num?)?.toDouble() ?? 0.0;
-                            return InkWell(
-                              borderRadius: BorderRadius.circular(12),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (_) => SuttaReaderScreen(
-                                    textId: h['id'] as String,
-                                    initialProgress: progress,
-                                  ),
-                                  ),
-                                );
-                              },
-                              child: Container(
-                                width: 220,
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isDark ? AppColors.darkCard : AppColors.parchmentCard,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: isDark ? AppColors.darkBorder : AppColors.parchmentBorder,
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          h['sutta_ref'] ?? h['nikaya_abbrev'] ?? 'Discourse',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w700,
-                                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          h['title'] ?? '',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: LinearProgressIndicator(
-                                        value: progress,
-                                        minHeight: 4,
-                                        backgroundColor: isDark ? Colors.white12 : Colors.black12,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                      const SizedBox(height: 4),
+                      ...(_recentHistory.take(3).toList().asMap().entries.map((entry) {
+                        final h = entry.value;
+                        final progress = (h['progress'] as num?)?.toDouble() ?? 0.0;
+                        final percent = (progress * 100).toInt();
+                        return InkWell(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => SuttaReaderScreen(
+                                textId: h['id'] as String,
+                                initialProgress: progress,
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        h['title'] as String? ?? '',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(2),
+                                        child: LinearProgressIndicator(
+                                          value: progress,
+                                          minHeight: 2,
+                                          backgroundColor: isDark ? Colors.white12 : Colors.black12,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  '$percent%',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      })),
                     ],
 
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
 
                     // Curated Starter Tracks
-                    const StarterTracks(),
+                    StarterTracks(headingColor: headingColor),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
 
                     // Gradual Training (Anupubbi-katha)
                     if (_ptfSections.isNotEmpty)
-                      GradualPathPreview(sections: _ptfSections),
+                      GradualPathPreview(sections: _ptfSections, headingColor: headingColor),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1),
+                    const SizedBox(height: 16),
 
-                    // Quick Canonical Jump Section
+                    // Browse
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'Pāli Canon Explorations',
+                        'Browse',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.3,
-                          color: isDark ? AppColors.darkText : AppColors.parchmentText,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.4,
+                          color: headingColor,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildCanonCard(
-                              context,
-                              title: 'Tipitaka',
-                              subtitle: 'The Three Baskets',
-                              icon: Icons.account_tree_outlined,
-                              onTap: () => widget.onTabChange?.call(1),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _buildCanonCard(
-                              context,
-                              title: 'Thai Forest',
-                              subtitle: 'Living Masters',
-                              icon: Icons.forest_outlined,
-                              onTap: () => widget.onTabChange?.call(2),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildCanonCard(
-                              context,
-                              title: 'Similes & Parables',
-                              subtitle: '330+ Imagery of Truth',
-                              icon: Icons.lightbulb_outline,
-                              onTap: () => widget.onTabChange?.call(3),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: _buildCanonCard(
-                              context,
-                              title: 'Pāli Glossary',
-                              subtitle: '200+ Core Terms',
-                              icon: Icons.translate,
-                              onTap: () => widget.onTabChange?.call(3),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    const SizedBox(height: 4),
+                    _buildBrowseRow(context, 'Tipiṭaka', () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const TipitakaScreen()),
+                      );
+                    }, isDark),
+                    _buildBrowseRow(context, 'Thai Forest Tradition', () => widget.onTabChange?.call(1), isDark),
+                    _buildBrowseRow(context, 'Similes & Parables', () => widget.onTabChange?.call(2), isDark),
+                    _buildBrowseRow(context, 'Pāli Glossary', () => widget.onTabChange?.call(2), isDark),
                   ],
                 ),
               ),
@@ -303,45 +257,18 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCanonCard(
-    BuildContext context, {
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  Widget _buildBrowseRow(BuildContext context, String title, VoidCallback? onTap, bool isDark) {
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         child: Row(
           children: [
+            Expanded(child: Text(title, style: const TextStyle(fontSize: 14))),
             Icon(
-              icon,
-              size: 20,
+              Icons.arrow_forward_ios,
+              size: 11,
               color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

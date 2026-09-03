@@ -19,50 +19,30 @@ class DailyContemplationCard extends StatelessWidget {
     if (contemplation == null) return const SizedBox.shrink();
 
     final c = contemplation!;
-    final borderColor = (isDark ? AppColors.saffronDark : AppColors.saffron).withOpacity(0.5);
-    final quoteColor = isDark ? AppColors.darkText : AppColors.parchmentText;
-    final sourceColor = isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(
-              width: 3,
-              decoration: BoxDecoration(
-                color: borderColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '"${c.verseEnglish}"',
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.5,
+              fontStyle: FontStyle.italic,
+              color: isDark ? AppColors.darkText : AppColors.parchmentText,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '"${c.verseEnglish}"',
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      fontStyle: FontStyle.italic,
-                      color: quoteColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '— ${c.sourceRef}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: sourceColor,
-                    ),
-                  ),
-                ],
-              ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '— ${c.sourceRef}',
+            style: TextStyle(
+              fontSize: 11,
+              color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

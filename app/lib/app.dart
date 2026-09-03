@@ -4,8 +4,8 @@ import 'providers/app_state_provider.dart';
 import 'screens/bookmarks/bookmarks_screen.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/library/library_screen.dart';
+import 'screens/reader/reader_settings_sheet.dart';
 import 'screens/reference/reference_screen.dart';
-import 'screens/tipitaka/tipitaka_screen.dart';
 import 'theme/app_colors.dart';
 import 'theme/app_theme.dart';
 
@@ -46,11 +46,25 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   int _currentIndex = 0;
   int _bookmarksVersion = 0;
 
+  void _onDestinationSelected(int idx) {
+    if (idx == 4) {
+      showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        builder: (_) => const ReaderSettingsSheet(),
+      );
+      return;
+    }
+    if (idx == 3) _bookmarksVersion++;
+    setState(() => _currentIndex = idx);
+  }
+
   @override
   Widget build(BuildContext context) {
     final screens = [
       HomeScreen(onTabChange: (index) => setState(() => _currentIndex = index)),
-      const TipitakaScreen(),
       const LibraryScreen(),
       const ReferenceScreen(),
       BookmarksScreen(key: ValueKey(_bookmarksVersion)),
@@ -63,20 +77,12 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) {
-          if (idx == 4) _bookmarksVersion++;
-          setState(() => _currentIndex = idx);
-        },
+        onDestinationSelected: _onDestinationSelected,
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.wb_sunny_outlined),
             selectedIcon: Icon(Icons.wb_sunny),
             label: 'Explore',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_tree_outlined),
-            selectedIcon: Icon(Icons.account_tree),
-            label: 'Tipiṭaka',
           ),
           NavigationDestination(
             icon: Icon(Icons.forest_outlined),
@@ -92,6 +98,11 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
             icon: Icon(Icons.bookmark_border),
             selectedIcon: Icon(Icons.bookmark),
             label: 'Saved',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),
