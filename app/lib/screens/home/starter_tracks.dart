@@ -76,28 +76,12 @@ class StarterTracks extends StatelessWidget {
                   color: isDark ? AppColors.darkText : AppColors.parchmentText,
                 ),
               ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  'CURATED',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 250,
+          height: 220,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
@@ -117,17 +101,11 @@ class StarterTracks extends StatelessWidget {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: t.color.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Icon(t.icon, size: 20, color: t.color),
-                        ),
+                        Icon(t.icon, size: 22, color: t.color),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
@@ -157,8 +135,8 @@ class StarterTracks extends StatelessWidget {
                     const SizedBox(height: 12),
                     const Divider(height: 1),
                     const SizedBox(height: 8),
-                    Expanded(
-                      child: ListView.builder(
+                    ListView.builder(
+                        shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: t.items.length,
                         itemBuilder: (ctx, idx) {
@@ -179,7 +157,7 @@ class StarterTracks extends StatelessWidget {
                                   Icon(
                                     Icons.chevron_right,
                                     size: 16,
-                                    color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                   const SizedBox(width: 4),
                                   Expanded(
@@ -199,7 +177,6 @@ class StarterTracks extends StatelessWidget {
                           );
                         },
                       ),
-                    ),
                   ],
                 ),
               );

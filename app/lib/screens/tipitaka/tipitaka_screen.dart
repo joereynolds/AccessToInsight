@@ -55,15 +55,15 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
               'The Three Baskets of the Pāli Canon',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-          labelColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+          indicatorColor: Theme.of(context).colorScheme.primary,
+          labelColor: Theme.of(context).colorScheme.primary,
           tabs: const [
             Tab(text: 'Sutta Piṭaka'),
             Tab(text: 'Vinaya Piṭaka'),
@@ -151,7 +151,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
             color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: (isDark ? AppColors.saffronMuted : AppColors.terracotta).withOpacity(0.2),
+              color: (Theme.of(context).colorScheme.primary).withOpacity(0.2),
             ),
           ),
           child: Row(
@@ -159,7 +159,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
               Icon(
                 Icons.auto_stories,
                 size: 20,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -210,7 +210,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   ),
@@ -291,7 +291,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),
@@ -490,7 +490,7 @@ class _TipitakaScreenState extends State<TipitakaScreen> with SingleTickerProvid
                   color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.4),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(icon, color: isDark ? AppColors.saffronMuted : AppColors.terracotta),
+                child: Icon(icon, color: Theme.of(context).colorScheme.primary),
               ),
               const SizedBox(width: 12),
               Expanded(

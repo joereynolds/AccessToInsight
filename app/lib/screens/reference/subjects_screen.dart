@@ -99,7 +99,7 @@ class _SubjectsScreenState extends State<SubjectsScreen> {
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
-                                    color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ),
                                 const SizedBox(height: 6),

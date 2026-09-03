@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/text_item.dart';
+import '../services/database_service.dart';
 import '../theme/app_colors.dart';
+import '../screens/library/authors_screen.dart';
 import '../screens/reader/sutta_reader_screen.dart';
-import 'pali_badge.dart';
 
 class SuttaCard extends StatelessWidget {
   final TextItem item;
@@ -40,15 +41,13 @@ class SuttaCard extends StatelessWidget {
               // Header badges & metadata
               Row(
                 children: [
-                  PaliBadge(label: item.displayReference),
-                  const SizedBox(width: 8),
-                  if (item.ptsId != null && item.ptsId!.isNotEmpty && item.ptsId != item.suttaRef)
+                  if (item.displayReference.isNotEmpty)
                     Text(
-                      item.ptsId!,
+                      item.displayReference,
                       style: TextStyle(
-                        fontSize: 11,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                        fontStyle: FontStyle.italic,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                   const Spacer(),
@@ -119,13 +118,29 @@ class SuttaCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Expanded(
-                    child: Text(
-                      item.author.isNotEmpty ? item.author : 'Traditional',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                    child: GestureDetector(
+                      onTap: item.author.isNotEmpty
+                          ? () async {
+                              final texts = await DatabaseService.instance.getTextsByAuthor(item.author);
+                              if (context.mounted) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => AuthorWorksScreen(authorName: item.author, texts: texts),
+                                  ),
+                                );
+                              }
+                            }
+                          : null,
+                      child: Text(
+                        item.author.isNotEmpty ? item.author : 'Traditional',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Theme.of(context).colorScheme.primary,
+                          decoration: item.author.isNotEmpty ? TextDecoration.underline : null,
+                          decorationColor: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
                     ),
                   ),
@@ -134,14 +149,14 @@ class SuttaCard extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 2),
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 11,
-                    color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ],
               ),

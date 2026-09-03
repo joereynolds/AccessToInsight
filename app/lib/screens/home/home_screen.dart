@@ -78,23 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     fontSize: 19,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -0.4,
-                    color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                  decoration: BoxDecoration(
-                    color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'PĀLI CANON',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-                    ),
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
@@ -195,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: TextStyle(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w700,
-                                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                            color: Theme.of(context).colorScheme.primary,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
@@ -216,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         value: progress,
                                         minHeight: 4,
                                         backgroundColor: isDark ? Colors.white12 : Colors.black12,
-                                        color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                        color: Theme.of(context).colorScheme.primary,
                                       ),
                                     ),
                                   ],
@@ -347,7 +331,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Icon(
                 icon,
                 size: 20,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(width: 10),

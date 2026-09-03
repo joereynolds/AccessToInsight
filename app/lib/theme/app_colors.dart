@@ -29,6 +29,24 @@ class AppColors {
   static const Color lightTextMuted = Color(0xFF64748B);
   static const Color lightBorder = Color(0xFFE2E8F0);
 
+  // Insight (AccessToInsight) Theme
+  static const Color insightBg = Color(0xFFFFFFFF);
+  static const Color insightSurface = Color(0xFFF5F5F5);
+  static const Color insightCard = Color(0xFFFFFFFF);
+  static const Color insightText = Color(0xFF000000);
+  static const Color insightTextMuted = Color(0xFF444444);
+  static const Color insightBorder = Color(0xFFCCCCCC);
+  static const Color insightLink = Color(0xFF1558D6);
+
+  // Monochrome Theme
+  static const Color monoBg = Color(0xFFFFFFFF);
+  static const Color monoSurface = Color(0xFFF2F2F2);
+  static const Color monoCard = Color(0xFFFFFFFF);
+  static const Color monoText = Color(0xFF111111);
+  static const Color monoTextMuted = Color(0xFF666666);
+  static const Color monoBorder = Color(0xFFD0D0D0);
+  static const Color monoAccent = Color(0xFF333333);
+
   // Night / Dark Temple Theme
   static const Color darkBg = Color(0xFF141210);
   static const Color darkSurface = Color(0xFF1E1B17);

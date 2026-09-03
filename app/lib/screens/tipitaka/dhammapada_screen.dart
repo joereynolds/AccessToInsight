@@ -89,7 +89,7 @@ Access to Insight
               '26 Vaggas • 423 Verses of Truth',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
@@ -128,7 +128,7 @@ Access to Insight
                             fontSize: 12,
                             fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                             color: isSelected
-                                ? (isDark ? AppColors.saffronMuted : AppColors.terracotta)
+                                ? (Theme.of(context).colorScheme.primary)
                                 : null,
                           ),
                           onSelected: (selected) {
@@ -158,7 +158,7 @@ Access to Insight
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                       ),
@@ -214,7 +214,7 @@ Access to Insight
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.bold,
-                                                  color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                                  color: Theme.of(context).colorScheme.primary,
                                                 ),
                                               ),
                                             ),
@@ -224,7 +224,7 @@ Access to Insight
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w700,
-                                                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                                color: Theme.of(context).colorScheme.primary,
                                               ),
                                             ),
                                             const Spacer(),

@@ -44,6 +44,7 @@ class MainNavigationScaffold extends StatefulWidget {
 
 class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
   int _currentIndex = 0;
+  int _bookmarksVersion = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +53,7 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       const TipitakaScreen(),
       const LibraryScreen(),
       const ReferenceScreen(),
-      const BookmarksScreen(),
+      BookmarksScreen(key: ValueKey(_bookmarksVersion)),
     ];
 
     return Scaffold(
@@ -62,7 +63,10 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
+        onDestinationSelected: (idx) {
+          if (idx == 4) _bookmarksVersion++;
+          setState(() => _currentIndex = idx);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.wb_sunny_outlined),

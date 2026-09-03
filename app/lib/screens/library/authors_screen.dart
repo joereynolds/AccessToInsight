@@ -102,7 +102,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                             name.isNotEmpty ? name[0] : '?',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
@@ -114,7 +114,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                           if (context.mounted) {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => _AuthorWorksScreen(authorName: name, texts: texts),
+                                builder: (_) => AuthorWorksScreen(authorName: name, texts: texts),
                               ),
                             );
                           }
@@ -129,11 +129,11 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
   }
 }
 
-class _AuthorWorksScreen extends StatelessWidget {
+class AuthorWorksScreen extends StatelessWidget {
   final String authorName;
   final List<TextItem> texts;
 
-  const _AuthorWorksScreen({required this.authorName, required this.texts});
+  const AuthorWorksScreen({super.key, required this.authorName, required this.texts});
 
   @override
   Widget build(BuildContext context) {

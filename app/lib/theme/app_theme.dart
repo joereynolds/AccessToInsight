@@ -3,7 +3,8 @@ import 'app_colors.dart';
 
 enum AppThemeStyle {
   warmParchment,
-  lightIvory,
+  insight,
+  monochrome,
   darkTemple,
 }
 
@@ -12,8 +13,10 @@ class AppTheme {
     switch (style) {
       case AppThemeStyle.darkTemple:
         return _buildDarkTempleTheme();
-      case AppThemeStyle.lightIvory:
-        return _buildLightIvoryTheme();
+      case AppThemeStyle.insight:
+        return _buildInsightTheme();
+      case AppThemeStyle.monochrome:
+        return _buildMonochromeTheme();
       case AppThemeStyle.warmParchment:
         return _buildWarmParchmentTheme();
     }
@@ -25,7 +28,7 @@ class AppTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.parchmentBg,
       colorScheme: ColorScheme.light(
-        primary: AppColors.saffron,
+        primary: AppColors.terracotta,
         secondary: AppColors.terracotta,
         surface: AppColors.parchmentSurface,
         onPrimary: Colors.white,
@@ -85,38 +88,132 @@ class AppTheme {
     );
   }
 
-  static ThemeData _buildLightIvoryTheme() {
+  static ThemeData _buildInsightTheme() {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      scaffoldBackgroundColor: AppColors.lightBg,
+      scaffoldBackgroundColor: AppColors.insightBg,
       colorScheme: ColorScheme.light(
-        primary: AppColors.saffron,
-        secondary: AppColors.terracotta,
-        surface: AppColors.lightSurface,
+        primary: AppColors.insightLink,
+        secondary: AppColors.insightLink,
+        surface: AppColors.insightSurface,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onSurface: AppColors.lightText,
-        outline: AppColors.lightBorder,
+        onSurface: AppColors.insightText,
+        outline: AppColors.insightBorder,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.lightBg,
-        foregroundColor: AppColors.lightText,
+        backgroundColor: AppColors.insightBg,
+        foregroundColor: AppColors.insightText,
         elevation: 0,
+        scrolledUnderElevation: 1,
         centerTitle: false,
         titleTextStyle: TextStyle(
-          color: AppColors.lightText,
+          color: AppColors.insightText,
           fontSize: 20,
           fontWeight: FontWeight.w700,
         ),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.lightCard,
+        color: AppColors.insightCard,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(14),
-          side: const BorderSide(color: AppColors.lightBorder, width: 1),
+          side: const BorderSide(color: AppColors.insightBorder, width: 1),
         ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.insightSurface,
+        indicatorColor: AppColors.insightLink.withValues(alpha: 0.12),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.insightLink,
+            );
+          }
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.insightTextMuted,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.insightLink);
+          }
+          return const IconThemeData(color: AppColors.insightTextMuted);
+        }),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.insightBorder,
+        thickness: 1,
+      ),
+    );
+  }
+
+  static ThemeData _buildMonochromeTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: AppColors.monoBg,
+      colorScheme: ColorScheme.light(
+        primary: AppColors.monoAccent,
+        secondary: AppColors.monoAccent,
+        surface: AppColors.monoSurface,
+        onPrimary: Colors.white,
+        onSecondary: Colors.white,
+        onSurface: AppColors.monoText,
+        outline: AppColors.monoBorder,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: AppColors.monoBg,
+        foregroundColor: AppColors.monoText,
+        elevation: 0,
+        scrolledUnderElevation: 1,
+        centerTitle: false,
+        titleTextStyle: TextStyle(
+          color: AppColors.monoText,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      cardTheme: CardThemeData(
+        color: AppColors.monoCard,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(14),
+          side: const BorderSide(color: AppColors.monoBorder, width: 1),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.monoSurface,
+        indicatorColor: AppColors.monoBorder,
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.monoText,
+            );
+          }
+          return const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.monoTextMuted,
+          );
+        }),
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: AppColors.monoText);
+          }
+          return const IconThemeData(color: AppColors.monoTextMuted);
+        }),
+      ),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.monoBorder,
+        thickness: 1,
       ),
     );
   }

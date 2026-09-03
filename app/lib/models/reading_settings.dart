@@ -7,7 +7,7 @@ class ReadingSettings {
   final double lineHeight;
 
   const ReadingSettings({
-    this.fontSize = 17.0,
+    this.fontSize = 14.0,
     this.fontFamily = 'Georgia',
     this.themeStyle = AppThemeStyle.warmParchment,
     this.lineHeight = 1.65,

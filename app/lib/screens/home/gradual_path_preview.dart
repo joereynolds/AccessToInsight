@@ -98,7 +98,7 @@ class GradualPathPreview extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),
@@ -109,7 +109,7 @@ class GradualPathPreview extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontStyle: FontStyle.italic,
-                                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),

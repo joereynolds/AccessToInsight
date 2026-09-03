@@ -45,7 +45,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
               'The Gradual Training (Anupubbī-kathā)',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
@@ -63,7 +63,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                     color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
-                      color: (isDark ? AppColors.saffronMuted : AppColors.terracotta).withOpacity(0.3),
+                      color: (Theme.of(context).colorScheme.primary).withOpacity(0.3),
                     ),
                   ),
                   child: Column(
@@ -73,7 +73,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                         children: [
                           Icon(
                             Icons.auto_stories,
-                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -81,7 +81,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],
@@ -148,7 +148,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
-                      color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),
@@ -165,7 +165,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                         ),
                         const Spacer(),
-                        Icon(icon, size: 18, color: isDark ? AppColors.saffronMuted : AppColors.terracotta),
+                        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -174,7 +174,7 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                       style: TextStyle(
                         fontSize: 12,
                         fontStyle: FontStyle.italic,
-                        color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -194,14 +194,14 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         const SizedBox(width: 4),
                         Icon(
                           Icons.arrow_forward_ios,
                           size: 11,
-                          color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ],
                     ),

@@ -54,8 +54,8 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
         title: const Text('Saved & History', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-          labelColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+          indicatorColor: Theme.of(context).colorScheme.primary,
+          labelColor: Theme.of(context).colorScheme.primary,
           tabs: [
             Tab(text: 'Bookmarks (${_bookmarks.length})'),
             Tab(text: 'Reading History (${_history.length})'),
@@ -115,7 +115,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                                     h['sutta_ref'] as String? ?? h['nikaya_abbrev'] as String? ?? '',
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                      color: Theme.of(context).colorScheme.primary,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
@@ -128,7 +128,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                                             value: progress,
                                             minHeight: 4,
                                             backgroundColor: isDark ? Colors.white12 : Colors.black12,
-                                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                                            color: Theme.of(context).colorScheme.primary,
                                           ),
                                         ),
                                       ),

@@ -45,7 +45,7 @@ class _GlossaryTileState extends State<GlossaryTile> {
                             fontSize: 17,
                             fontWeight: FontWeight.w700,
                             fontFamily: 'serif',
-                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
                         ),
                         if (widget.item.term != widget.item.paliTerm.toLowerCase())
@@ -92,7 +92,7 @@ class _GlossaryTileState extends State<GlossaryTile> {
                     icon: const Icon(Icons.menu_book, size: 16),
                     label: const Text('Read Full Discourse / Study Guide'),
                     style: TextButton.styleFrom(
-                      foregroundColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                      foregroundColor: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                 ),

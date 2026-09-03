@@ -33,7 +33,7 @@ class EmptyState extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 38,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
             const SizedBox(height: 16),

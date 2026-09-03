@@ -52,7 +52,7 @@ class _StudyGuidesScreenState extends State<StudyGuidesScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.collections_bookmark_outlined, color: isDark ? AppColors.saffronMuted : AppColors.terracotta),
+                      Icon(Icons.collections_bookmark_outlined, color: Theme.of(context).colorScheme.primary),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(

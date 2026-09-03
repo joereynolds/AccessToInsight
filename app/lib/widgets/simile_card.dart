@@ -48,7 +48,7 @@ class SimileCard extends StatelessWidget {
                     child: Icon(
                       Icons.lightbulb_outline,
                       size: 20,
-                      color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -75,7 +75,7 @@ class SimileCard extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),

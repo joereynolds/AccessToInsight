@@ -19,7 +19,7 @@ class PaliBadge extends StatelessWidget {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = color ?? (isDark ? AppColors.saffronDark.withValues(alpha: 0.3) : AppColors.saffronLight.withValues(alpha: 0.6));
-    final fg = textColor ?? (isDark ? AppColors.saffronMuted : AppColors.terracotta);
+    final fg = textColor ?? (Theme.of(context).colorScheme.primary);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),

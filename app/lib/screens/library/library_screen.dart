@@ -14,19 +14,7 @@ class LibraryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Dhamma Library', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
-            Text(
-              'Modern Commentaries, Forest Talks & Study Guides',
-              style: TextStyle(
-                fontSize: 12,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-              ),
-            ),
-          ],
-        ),
+        title: const Text('Dhamma Library', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -38,7 +26,6 @@ class LibraryScreen extends StatelessWidget {
             subtitle: 'Living practice lineage of Ajaan Mun, Ajaan Chah, Ajaan Lee & more',
             icon: Icons.forest_outlined,
             color: AppColors.forestSage,
-            badge: 'MEDITATION LINEAGE',
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const ThaiForestScreen()),
@@ -54,7 +41,6 @@ class LibraryScreen extends StatelessWidget {
             subtitle: 'Bhikkhu Bodhi, Thanissaro Bhikkhu, Nyanaponika Thera, Mahasi Sayadaw',
             icon: Icons.people_outline,
             color: AppColors.terracotta,
-            badge: '80+ SCHOLARS',
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const AuthorsScreen()),
@@ -70,7 +56,6 @@ class LibraryScreen extends StatelessWidget {
             subtitle: 'Curated anthologies: Wings to Awakening, Kamma, Eightfold Path, Mindfulness',
             icon: Icons.menu_book_outlined,
             color: AppColors.saffron,
-            badge: 'DEEP STUDY',
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const StudyGuidesScreen()),
@@ -132,7 +117,6 @@ class LibraryScreen extends StatelessWidget {
     required String subtitle,
     required IconData icon,
     required Color color,
-    required String badge,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -152,35 +136,12 @@ class LibraryScreen extends StatelessWidget {
           padding: const EdgeInsets.all(18),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(icon, size: 28, color: color),
-              ),
+              Icon(icon, size: 28, color: color),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: color.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        badge,
-                        style: TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: color,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
                     Text(
                       title,
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),

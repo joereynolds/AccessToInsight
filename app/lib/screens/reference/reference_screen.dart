@@ -40,15 +40,15 @@ class _ReferenceScreenState extends State<ReferenceScreen> with SingleTickerProv
               'Pāli Glossary, Similes & General Subject Index',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
         ),
         bottom: TabBar(
           controller: _tabController,
-          indicatorColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-          labelColor: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+          indicatorColor: Theme.of(context).colorScheme.primary,
+          labelColor: Theme.of(context).colorScheme.primary,
           tabs: const [
             Tab(text: 'Pāli Glossary'),
             Tab(text: 'Similes & Parables'),

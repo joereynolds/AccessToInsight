@@ -8,7 +8,8 @@ import '../../models/text_item.dart';
 import '../../providers/app_state_provider.dart';
 import '../../services/database_service.dart';
 import '../../theme/app_colors.dart';
-import '../../widgets/pali_badge.dart';
+import '../../theme/app_theme.dart';
+import '../library/authors_screen.dart';
 import 'footnotes_sheet.dart';
 import 'reader_settings_sheet.dart';
 
@@ -151,6 +152,79 @@ https://accesstoinsight.org/${_item!.path}
     return false;
   }
 
+  void _showInfoModal(BuildContext context, TextItem item, bool isDark) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 20, 24, 24 + MediaQuery.of(ctx).viewPadding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '${item.wordCount} words • ${item.readingTimeMinutes} min read',
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+              ),
+            ),
+            const SizedBox(height: 4),
+            GestureDetector(
+              onTap: item.author.isNotEmpty
+                  ? () async {
+                      final texts = await DatabaseService.instance.getTextsByAuthor(item.author);
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => AuthorWorksScreen(authorName: item.author, texts: texts),
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+              child: Text(
+                'Translated from Pali by ${item.author.isNotEmpty ? item.author : "Traditional"}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.primary,
+                  decoration: item.author.isNotEmpty ? TextDecoration.underline : null,
+                  decorationColor: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              item.summary,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.55,
+                color: isDark ? AppColors.darkText : AppColors.parchmentText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppStateProvider>();
@@ -215,7 +289,13 @@ https://accesstoinsight.org/${_item!.path}
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: isDark
+                    ? AppColors.saffronMuted
+                    : settings.themeStyle == AppThemeStyle.insight
+                        ? AppColors.insightTextMuted
+                        : settings.themeStyle == AppThemeStyle.monochrome
+                            ? AppColors.monoTextMuted
+                            : AppColors.terracotta,
               ),
             ),
           ],
@@ -257,45 +337,11 @@ https://accesstoinsight.org/${_item!.path}
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Meta Header Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.darkCard : AppColors.parchmentSurface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isDark ? AppColors.darkBorder : AppColors.parchmentBorder,
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        PaliBadge(label: item.displayReference),
-                        const SizedBox(width: 8),
-                        if (item.ptsId != null && item.ptsId!.isNotEmpty)
-                          Text(
-                            'PTS: ${item.ptsId!}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
-                        const Spacer(),
-                        Text(
-                          '${item.wordCount} words • ${item.readingTimeMinutes} min',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
                       item.title,
                       style: TextStyle(
                         fontSize: 22,
@@ -304,97 +350,51 @@ https://accesstoinsight.org/${_item!.path}
                         height: 1.25,
                       ),
                     ),
-                    if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        item.subtitle!,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontStyle: FontStyle.italic,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                  ),
+                  if (item.summary.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () => _showInfoModal(context, item, isDark),
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                            width: 1.2,
+                          ),
                         ),
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.translate,
-                          size: 14,
-                          color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
+                        child: Center(
                           child: Text(
-                            'Translated from Pali by ${item.author.isNotEmpty ? item.author : "Traditional"}',
+                            '?',
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w700,
                               color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                             ),
                           ),
                         ),
-                      ],
+                      ),
                     ),
                   ],
-                ),
+                ],
               ),
-
-              // Prominent Summary Box (Makes ancient text immediately digestible!)
-              if (item.summary.isNotEmpty) ...[
-                const SizedBox(height: 16),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border(
-                      left: BorderSide(
-                        color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-                        width: 4,
-                      ),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.auto_stories,
-                            size: 16,
-                            color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Overview & Spiritual Context',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        item.summary,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.5,
-                          color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                        ),
-                      ),
-                    ],
+              if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  item.subtitle!,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontStyle: FontStyle.italic,
+                    color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                   ),
                 ),
               ],
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
               const Divider(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // Main Body Content via HtmlWidget
               HtmlWidget(
@@ -407,30 +407,43 @@ https://accesstoinsight.org/${_item!.path}
                   color: isDark ? AppColors.darkText : AppColors.parchmentText,
                 ),
                 customStylesBuilder: (element) {
+                  final accentHex = isDark
+                      ? '#F59E0B'
+                      : settings.themeStyle == AppThemeStyle.insight
+                          ? '#1558D6'
+                          : settings.themeStyle == AppThemeStyle.monochrome
+                              ? '#333333'
+                              : '#9A3412';
                   if (element.className == 'freeverse') {
                     return {
                       'margin-left': '18px',
                       'font-style': 'italic',
                       'padding': '10px 14px',
-                      'border-left': '3px solid #D97706',
+                      'border-left': '3px solid $accentHex',
                     };
                   }
                   if (element.className == 'chapter') {
                     return {'margin-bottom': '16px'};
                   }
                   if (element.localName == 'h4' || element.localName == 'h3') {
+                    final headingColor = isDark
+                        ? '#F59E0B'
+                        : settings.themeStyle == AppThemeStyle.insight ||
+                                settings.themeStyle == AppThemeStyle.monochrome
+                            ? '#000000'
+                            : '#9A3412';
                     return {
                       'font-weight': 'bold',
                       'margin-top': '20px',
                       'margin-bottom': '8px',
-                      'color': isDark ? '#F59E0B' : '#9A3412',
+                      'color': headingColor,
                     };
                   }
                   if (element.className == 'noteTag') {
                     return {
                       'font-size': '12px',
                       'font-weight': 'bold',
-                      'color': isDark ? '#F59E0B' : '#9A3412',
+                      'color': accentHex,
                       'text-decoration': 'none',
                     };
                   }

@@ -96,7 +96,7 @@ class ThaiForestScreen extends StatelessWidget {
               'The Kammaṭṭhāna Lineage',
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? AppColors.saffronMuted : AppColors.terracotta,
+                color: Theme.of(context).colorScheme.primary,
               ),
             ),
           ],
@@ -179,7 +179,7 @@ class ThaiForestScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     backgroundColor: (isDark ? AppColors.saffronDark : AppColors.saffronLight).withOpacity(0.5),
-                    child: Icon(m.icon, color: isDark ? AppColors.saffronMuted : AppColors.terracotta),
+                    child: Icon(m.icon, color: Theme.of(context).colorScheme.primary),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
