@@ -77,8 +77,10 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                         separatorBuilder: (_, __) => const Divider(height: 1),
                         itemBuilder: (ctx, i) {
                           final h = _history[i];
-                          final progress = (h['progress'] as num?)?.toDouble() ?? 0.0;
-                          final percent = (progress * 100).toInt();
+                          final pixels = (h['progress'] as num?)?.toDouble() ?? 0.0;
+                          final maxScroll = (h['max_scroll'] as num?)?.toDouble() ?? 0.0;
+                          final fraction = (maxScroll > 0) ? (pixels / maxScroll).clamp(0.0, 1.0) : 0.0;
+                          final percent = (fraction * 100).toInt();
                           final textId = h['text_id'] as String;
 
                           return Dismissible(
@@ -113,7 +115,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                                         child: ClipRRect(
                                           borderRadius: BorderRadius.circular(3),
                                           child: LinearProgressIndicator(
-                                            value: progress,
+                                            value: fraction,
                                             minHeight: 4,
                                             backgroundColor:
                                                 isDark ? Colors.white12 : Colors.black12,
@@ -134,7 +136,7 @@ class _BookmarksScreenState extends State<BookmarksScreen> with SingleTickerProv
                                   MaterialPageRoute(
                                     builder: (_) => SuttaReaderScreen(
                                       textId: textId,
-                                      initialProgress: progress,
+                                      initialProgress: pixels,
                                     ),
                                   ),
                                 );
