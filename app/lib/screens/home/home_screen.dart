@@ -155,14 +155,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 4),
                       ...(_recentHistory.take(3).toList().asMap().entries.map((entry) {
                         final h = entry.value;
-                        final progress = (h['progress'] as num?)?.toDouble() ?? 0.0;
-                        final percent = (progress * 100).toInt();
+                        final pixels = (h['progress'] as num?)?.toDouble() ?? 0.0;
+                        final maxScroll = (h['max_scroll'] as num?)?.toDouble() ?? 0.0;
+                        final fraction = (maxScroll > 0) ? (pixels / maxScroll).clamp(0.0, 1.0) : 0.0;
+                        final percent = (fraction * 100).toInt();
                         return InkWell(
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => SuttaReaderScreen(
                                 textId: h['text_id'] as String,
-                                initialProgress: progress,
+                                initialProgress: pixels,
                               ),
                             ),
                           ),
@@ -184,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(2),
                                         child: LinearProgressIndicator(
-                                          value: progress,
+                                          value: fraction,
                                           minHeight: 2,
                                           backgroundColor: isDark ? Colors.white12 : Colors.black12,
                                           color: Theme.of(context).colorScheme.primary,

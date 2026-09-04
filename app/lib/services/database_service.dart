@@ -99,6 +99,10 @@ class DatabaseService {
     try {
       await db.execute('ALTER TABLE collections ADD COLUMN is_default INTEGER DEFAULT 0');
     } catch (_) {}
+    // Migrate: add max_scroll column for pixel-accurate reading position
+    try {
+      await db.execute('ALTER TABLE reading_history ADD COLUMN max_scroll REAL DEFAULT 0.0');
+    } catch (_) {}
     await db.execute('''
       CREATE TABLE IF NOT EXISTS collection_items (
         collection_id INTEGER NOT NULL,
@@ -580,12 +584,12 @@ class DatabaseService {
     }
   }
 
-  Future<void> updateReadingProgress(String textId, double progress) async {
+  Future<void> updateReadingProgress(String textId, double pixels, double maxScroll) async {
     final db = await database;
     await db.rawInsert('''
-      INSERT OR REPLACE INTO reading_history (text_id, progress, last_read_at)
-      VALUES (?, ?, ?)
-    ''', [textId, progress, DateTime.now().millisecondsSinceEpoch]);
+      INSERT OR REPLACE INTO reading_history (text_id, progress, max_scroll, last_read_at)
+      VALUES (?, ?, ?, ?)
+    ''', [textId, pixels, maxScroll, DateTime.now().millisecondsSinceEpoch]);
   }
 
   Future<void> deleteHistoryEntry(String textId) async {
@@ -600,7 +604,7 @@ class DatabaseService {
     final db = await database;
     final rows = await db.rawQuery('''
       SELECT texts.id AS text_id, texts.title, texts.subtitle, texts.sutta_ref, texts.nikaya_abbrev,
-             reading_history.progress, reading_history.last_read_at
+             reading_history.progress, reading_history.max_scroll, reading_history.last_read_at
       FROM reading_history
       JOIN texts ON texts.id = reading_history.text_id
       ORDER BY reading_history.last_read_at DESC

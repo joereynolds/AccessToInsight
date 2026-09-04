@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
@@ -31,6 +33,7 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
   bool _isBookmarked = false;
   bool _showPositionHighlight = false;
   final ScrollController _scrollController = ScrollController();
+  Timer? _scrollDebounce;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
 
   @override
   void dispose() {
+    _scrollDebounce?.cancel();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
@@ -48,11 +52,15 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
 
   void _onScroll() {
     if (!_scrollController.hasClients || _item == null) return;
-    final maxScroll = _scrollController.position.maxScrollExtent;
-    if (maxScroll > 0) {
-      final progress = (_scrollController.position.pixels / maxScroll).clamp(0.0, 1.0);
-      DatabaseService.instance.updateReadingProgress(_item!.id, progress);
-    }
+    _scrollDebounce?.cancel();
+    _scrollDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (!mounted || !_scrollController.hasClients || _item == null) return;
+      final pixels = _scrollController.position.pixels;
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      if (pixels > 0 && maxScroll > 0) {
+        DatabaseService.instance.updateReadingProgress(_item!.id, pixels, maxScroll);
+      }
+    });
   }
 
   Future<void> _loadText() async {
@@ -86,27 +94,32 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
   }
 
   void _restoreScrollPosition() {
-    final progress = widget.initialProgress;
-    if (progress == null || progress <= 0.0) return;
-    // Wait for HtmlWidget to finish laying out before scrolling
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 600), () {
-        if (!mounted || !_scrollController.hasClients) return;
-        final target = (_scrollController.position.maxScrollExtent * progress).clamp(
-          0.0,
-          _scrollController.position.maxScrollExtent,
-        );
-        _scrollController.animateTo(
-          target,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeOut,
-        );
-        setState(() => _showPositionHighlight = true);
-        Future.delayed(const Duration(milliseconds: 2500), () {
-          if (mounted) setState(() => _showPositionHighlight = false);
-        });
+    final targetPixels = widget.initialProgress;
+    if (targetPixels == null || targetPixels <= 0.0) return;
+
+    // Legacy entries saved as a 0–1 fraction are small enough that jumpTo(fraction)
+    // lands near the top — harmless reset. New entries are raw pixel offsets.
+    //
+    // SliverList hasn't laid out on the first frame, so maxScrollExtent may be 0.
+    // Poll until we get a non-zero extent, then jump.
+    int attempts = 0;
+
+    void attemptJump(Duration _) {
+      if (!mounted || !_scrollController.hasClients) return;
+      attempts++;
+      final maxExtent = _scrollController.position.maxScrollExtent;
+      if (maxExtent <= 0 && attempts < 60) {
+        WidgetsBinding.instance.addPostFrameCallback(attemptJump);
+        return;
+      }
+      _scrollController.jumpTo(targetPixels.clamp(0.0, maxExtent));
+      setState(() => _showPositionHighlight = true);
+      Future.delayed(const Duration(milliseconds: 2500), () {
+        if (mounted) setState(() => _showPositionHighlight = false);
       });
-    });
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback(attemptJump);
   }
 
   Future<void> _toggleBookmark() async {
@@ -446,7 +459,7 @@ https://accesstoinsight.org/${_item!.path}
                   ),
                 ),
 
-                // Main body — lazy sliver rendering
+                // Main body
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   sliver: HtmlWidget(
