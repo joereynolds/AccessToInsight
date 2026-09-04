@@ -34,7 +34,17 @@ class _AddToCollectionSheetState extends State<_AddToCollectionSheet> {
   Future<void> _load() async {
     final cols = await DatabaseService.instance.getCollections();
     final ids = await DatabaseService.instance.getCollectionIdsForText(widget.textId);
-    if (mounted) setState(() { _collections = cols; _memberOf = ids; _loading = false; });
+    if (mounted) {
+      setState(() {
+        // Saved first, then user collections
+        _collections = [
+          ...cols.where((c) => (c['is_default'] as int? ?? 0) == 1),
+          ...cols.where((c) => (c['is_default'] as int? ?? 0) == 0),
+        ];
+        _memberOf = ids;
+        _loading = false;
+      });
+    }
   }
 
   Future<void> _toggle(int collectionId) async {
@@ -73,8 +83,9 @@ class _AddToCollectionSheetState extends State<_AddToCollectionSheet> {
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 12),
             child: Row(
               children: [
-                Text('Add to Collection',
-                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface)),
+                Text('Save to...',
+                    style: TextStyle(
+                        fontSize: 17, fontWeight: FontWeight.w700, color: cs.onSurface)),
                 const Spacer(),
                 TextButton.icon(
                   icon: const Icon(Icons.add, size: 18),
@@ -90,29 +101,26 @@ class _AddToCollectionSheetState extends State<_AddToCollectionSheet> {
               padding: EdgeInsets.all(24),
               child: Center(child: CircularProgressIndicator()),
             )
-          else if (_collections.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Center(
-                child: Text('No collections yet. Tap "New" to create one.',
-                    style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5))),
-              ),
-            )
           else
             ...(_collections.map((col) {
               final id = col['id'] as int;
+              final isDefault = (col['is_default'] as int? ?? 0) == 1;
               final inCollection = _memberOf.contains(id);
               return ListTile(
                 leading: Icon(
-                  inCollection ? Icons.check_circle : Icons.circle_outlined,
+                  inCollection
+                      ? (isDefault ? Icons.bookmark : Icons.check_circle)
+                      : (isDefault ? Icons.bookmark_border : Icons.circle_outlined),
                   color: inCollection ? cs.primary : cs.onSurface.withValues(alpha: 0.3),
                 ),
-                title: Text(col['name'] as String, style: const TextStyle(fontWeight: FontWeight.w600)),
+                title: Text(col['name'] as String,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 subtitle: (col['description'] as String?)?.isNotEmpty == true
                     ? Text(col['description'] as String,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5)))
+                        style: TextStyle(
+                            fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5)))
                     : null,
                 onTap: () => _toggle(id),
               );
@@ -172,7 +180,8 @@ class _CreateCollectionDialogState extends State<_CreateCollectionDialog> {
           onPressed: () {
             final name = _nameCtrl.text.trim();
             if (name.isEmpty) return;
-            Navigator.pop(context, (name, _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim()));
+            Navigator.pop(
+                context, (name, _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim()));
           },
           child: const Text('Create'),
         ),

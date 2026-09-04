@@ -9,6 +9,7 @@ import '../../providers/app_state_provider.dart';
 import '../../services/database_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
+import '../../utils.dart';
 import '../../widgets/add_to_collection_sheet.dart';
 import '../library/authors_screen.dart';
 import 'footnotes_sheet.dart';
@@ -116,7 +117,7 @@ class _SuttaReaderScreenState extends State<SuttaReaderScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(newStatus ? 'Added to Bookmarks' : 'Removed from Bookmarks'),
+          content: Text(newStatus ? 'Saved' : 'Removed from Saved'),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -215,12 +216,16 @@ https://accesstoinsight.org/${_item!.path}
             GestureDetector(
               onTap: item.author.isNotEmpty
                   ? () async {
-                      final texts = await DatabaseService.instance.getTextsByAuthor(item.author);
+                      final texts = await DatabaseService.instance.getTextsByAuthor(item.authorShort);
                       if (context.mounted) {
                         Navigator.of(context).pop();
                         Navigator.of(context).push(
                           MaterialPageRoute(
-                            builder: (_) => AuthorWorksScreen(authorName: item.author, texts: texts),
+                            builder: (_) => AuthorWorksScreen(
+                              authorName: item.author,
+                              authorSlug: item.authorShort.toLowerCase(),
+                              texts: texts,
+                            ),
                           ),
                         );
                       }
@@ -240,7 +245,7 @@ https://accesstoinsight.org/${_item!.path}
             const Divider(),
             const SizedBox(height: 12),
             Text(
-              item.summary,
+              stripHtml(item.summary),
               style: TextStyle(
                 fontSize: 14,
                 height: 1.55,
@@ -368,154 +373,166 @@ https://accesstoinsight.org/${_item!.path}
       body: Stack(
         children: [
           Scrollbar(
-        controller: _scrollController,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      item.title,
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w800,
-                        fontFamily: settings.fontFamily,
-                        height: 1.25,
-                      ),
-                    ),
-                  ),
-                  if (item.summary.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => _showInfoModal(context, item, isDark),
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
-                            width: 1.2,
-                          ),
+            controller: _scrollController,
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                // Header: title, subtitle, divider
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                item.title,
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                  fontFamily: settings.fontFamily,
+                                  height: 1.25,
+                                ),
+                              ),
+                            ),
+                            if (item.summary.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () => _showInfoModal(context, item, isDark),
+                                child: Container(
+                                  width: 22,
+                                  height: 22,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '?',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
-                        child: Center(
-                          child: Text(
-                            '?',
+                        if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            stripHtml(item.subtitle!),
                             style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              fontStyle: FontStyle.italic,
                               color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
                             ),
                           ),
-                        ),
-                      ),
+                        ],
+                        const SizedBox(height: 10),
+                        const Divider(),
+                        const SizedBox(height: 10),
+                      ],
                     ),
-                  ],
-                ],
-              ),
-              if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(
-                  item.subtitle!,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontStyle: FontStyle.italic,
-                    color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
+                  ),
+                ),
+
+                // Main body — lazy sliver rendering
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: HtmlWidget(
+                    item.contentHtml,
+                    renderMode: RenderMode.sliverList,
+                    onTapUrl: (url) => _handleLinkTap(url),
+                    textStyle: TextStyle(
+                      fontSize: settings.fontSize,
+                      fontFamily: settings.fontFamily,
+                      height: settings.lineHeight,
+                      color: isDark ? AppColors.darkText : AppColors.parchmentText,
+                    ),
+                    customStylesBuilder: (element) {
+                      final accentHex = isDark
+                          ? '#F59E0B'
+                          : settings.themeStyle == AppThemeStyle.insight
+                              ? '#1558D6'
+                              : settings.themeStyle == AppThemeStyle.monochrome
+                                  ? '#333333'
+                                  : '#9A3412';
+                      if (element.className == 'freeverse') {
+                        return {
+                          'margin-left': '18px',
+                          'font-style': 'italic',
+                          'padding': '10px 14px',
+                          'border-left': '3px solid $accentHex',
+                        };
+                      }
+                      if (element.className == 'chapter') {
+                        return {'margin-bottom': '16px'};
+                      }
+                      if (element.localName == 'h4' || element.localName == 'h3') {
+                        final headingColor = isDark
+                            ? '#F59E0B'
+                            : settings.themeStyle == AppThemeStyle.insight ||
+                                    settings.themeStyle == AppThemeStyle.monochrome
+                                ? '#000000'
+                                : '#9A3412';
+                        return {
+                          'font-weight': 'bold',
+                          'margin-top': '20px',
+                          'margin-bottom': '8px',
+                          'color': headingColor,
+                        };
+                      }
+                      if (element.className == 'noteTag') {
+                        return {
+                          'font-size': '12px',
+                          'font-weight': 'bold',
+                          'color': accentHex,
+                          'text-decoration': 'none',
+                        };
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+
+                // Footer: attribution
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 32, 20, 48),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Divider(),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Attribution & License',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Access to Insight (BCBS Edition). Transcribed from original files by ${item.author}. ${item.license ?? "Licensed under Creative Commons"}.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
-
-              const SizedBox(height: 10),
-              const Divider(),
-              const SizedBox(height: 10),
-
-              // Main Body Content via HtmlWidget
-              HtmlWidget(
-                item.contentHtml,
-                onTapUrl: (url) => _handleLinkTap(url),
-                textStyle: TextStyle(
-                  fontSize: settings.fontSize,
-                  fontFamily: settings.fontFamily,
-                  height: settings.lineHeight,
-                  color: isDark ? AppColors.darkText : AppColors.parchmentText,
-                ),
-                customStylesBuilder: (element) {
-                  final accentHex = isDark
-                      ? '#F59E0B'
-                      : settings.themeStyle == AppThemeStyle.insight
-                          ? '#1558D6'
-                          : settings.themeStyle == AppThemeStyle.monochrome
-                              ? '#333333'
-                              : '#9A3412';
-                  if (element.className == 'freeverse') {
-                    return {
-                      'margin-left': '18px',
-                      'font-style': 'italic',
-                      'padding': '10px 14px',
-                      'border-left': '3px solid $accentHex',
-                    };
-                  }
-                  if (element.className == 'chapter') {
-                    return {'margin-bottom': '16px'};
-                  }
-                  if (element.localName == 'h4' || element.localName == 'h3') {
-                    final headingColor = isDark
-                        ? '#F59E0B'
-                        : settings.themeStyle == AppThemeStyle.insight ||
-                                settings.themeStyle == AppThemeStyle.monochrome
-                            ? '#000000'
-                            : '#9A3412';
-                    return {
-                      'font-weight': 'bold',
-                      'margin-top': '20px',
-                      'margin-bottom': '8px',
-                      'color': headingColor,
-                    };
-                  }
-                  if (element.className == 'noteTag') {
-                    return {
-                      'font-size': '12px',
-                      'font-weight': 'bold',
-                      'color': accentHex,
-                      'text-decoration': 'none',
-                    };
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 32),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              // Footer License & Provenance
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Attribution & License',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Access to Insight (BCBS Edition). Transcribed from original files by ${item.author}. ${item.license ?? "Licensed under Creative Commons"}.',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 48),
-            ],
-          ),
-        ),
+            ),
           ),
           // Reading position highlight — fades in then out
           AnimatedOpacity(
@@ -542,3 +559,4 @@ https://accesstoinsight.org/${_item!.path}
     );
   }
 }
+

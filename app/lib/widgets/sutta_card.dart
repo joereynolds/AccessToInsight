@@ -4,6 +4,7 @@ import '../services/database_service.dart';
 import '../theme/app_colors.dart';
 import '../screens/library/authors_screen.dart';
 import '../screens/reader/sutta_reader_screen.dart';
+import '../utils.dart';
 
 class SuttaCard extends StatelessWidget {
   final TextItem item;
@@ -81,7 +82,7 @@ class SuttaCard extends StatelessWidget {
               if (item.subtitle != null && item.subtitle!.isNotEmpty) ...[
                 const SizedBox(height: 3),
                 Text(
-                  item.subtitle!,
+                  stripHtml(item.subtitle!),
                   style: TextStyle(
                     fontSize: 13,
                     color: isDark ? AppColors.darkTextMuted : AppColors.parchmentTextMuted,
@@ -94,7 +95,7 @@ class SuttaCard extends StatelessWidget {
               if (item.summary.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  item.summary,
+                  stripHtml(item.summary),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -119,11 +120,15 @@ class SuttaCard extends StatelessWidget {
                     child: GestureDetector(
                       onTap: item.author.isNotEmpty
                           ? () async {
-                              final texts = await DatabaseService.instance.getTextsByAuthor(item.author);
+                              final texts = await DatabaseService.instance.getTextsByAuthor(item.authorShort);
                               if (context.mounted) {
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
-                                    builder: (_) => AuthorWorksScreen(authorName: item.author, texts: texts),
+                                    builder: (_) => AuthorWorksScreen(
+                                      authorName: item.author,
+                                      authorSlug: item.authorShort.toLowerCase(),
+                                      texts: texts,
+                                    ),
                                   ),
                                 );
                               }

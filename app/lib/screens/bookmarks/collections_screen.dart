@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
 import '../../widgets/empty_state.dart';
@@ -30,7 +31,11 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     }
     if (!mounted) return;
     setState(() {
-      _collections = cols;
+      // Saved always first, then alphabetical
+      _collections = [
+        ...cols.where((c) => (c['is_default'] as int? ?? 0) == 1),
+        ...cols.where((c) => (c['is_default'] as int? ?? 0) == 0),
+      ];
       _items.clear();
       _items.addAll(items);
       _isLoading = false;
@@ -53,6 +58,30 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
     if (!mounted || result == null) return;
     await DatabaseService.instance.updateCollection(col['id'] as int, result.$1, description: result.$2);
     if (mounted) await _load();
+  }
+
+  void _shareCollection(String name, List<TextItem> texts) {
+    if (texts.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Collection is empty — nothing to share.')),
+      );
+      return;
+    }
+    final buf = StringBuffer();
+    buf.writeln(name);
+    buf.writeln();
+    for (var i = 0; i < texts.length; i++) {
+      final t = texts[i];
+      final ref = t.suttaRef ?? t.nikayaAbbrev;
+      buf.writeln('${i + 1}. ${t.title}${ref.isNotEmpty ? ' ($ref)' : ''}');
+      buf.writeln('   https://accesstoinsight.org/${t.path}');
+      buf.writeln();
+    }
+    buf.write('Shared via Access to Insight');
+    Clipboard.setData(ClipboardData(text: buf.toString()));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${texts.length} links copied to clipboard')),
+    );
   }
 
   Future<void> _deleteCollection(Map<String, dynamic> col) async {
@@ -82,14 +111,19 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
 
     if (_isLoading) return const Center(child: CircularProgressIndicator());
 
-    if (_collections.isEmpty) {
+    final hasUserCollections = _collections.any((c) => (c['is_default'] as int? ?? 0) == 0);
+    final savedCol = _collections.where((c) => (c['is_default'] as int? ?? 0) == 1).firstOrNull;
+    final savedTexts = savedCol != null ? (_items[savedCol['id'] as int] ?? []) : <TextItem>[];
+    final savedIsEmpty = savedTexts.isEmpty;
+
+    if (_collections.isEmpty || (savedCol == null && !hasUserCollections)) {
       return EmptyState(
-        icon: Icons.playlist_add,
-        title: 'No Collections Yet',
-        message: 'Tap the + icon while reading to add articles to a collection.',
+        icon: Icons.bookmark_border,
+        title: 'Nothing saved yet',
+        message: 'Tap the bookmark icon while reading to save suttas to your Saved list.',
         action: FilledButton.icon(
           icon: const Icon(Icons.add, size: 18),
-          label: const Text('Create Collection'),
+          label: const Text('New Collection'),
           onPressed: _createCollection,
         ),
       );
@@ -100,72 +134,52 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
       child: ListView(
         padding: const EdgeInsets.only(bottom: 40),
         children: [
-          ..._collections.map((col) {
-            final id = col['id'] as int;
-            final name = col['name'] as String;
-            final desc = col['description'] as String?;
-            final texts = _items[id] ?? [];
+          // --- Saved (default) collection ---
+          if (savedCol != null) ...[
+            _SectionHeader(
+              icon: Icons.bookmark,
+              title: 'Saved',
+              count: savedTexts.length,
+              onShare: () => _shareCollection('Saved', savedTexts),
+              menu: null,
+            ),
+            if (savedIsEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: Text(
+                  'Tap the bookmark icon while reading to save suttas here.',
+                  style: TextStyle(fontSize: 13, color: cs.onSurface.withValues(alpha: 0.4)),
+                ),
+              )
+            else
+              ..._buildTextRows(context, savedTexts, cs),
+            const Divider(height: 1),
+          ],
 
+          // --- User collections ---
+          ..._collections
+              .where((c) => (c['is_default'] as int? ?? 0) == 0)
+              .map((col) {
+            final id = col['id'] as int;
+            final texts = _items[id] ?? [];
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.baseline,
-                              textBaseline: TextBaseline.alphabetic,
-                              children: [
-                                Text(
-                                  name,
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    color: cs.onSurface,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  '${texts.length}',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: cs.onSurface.withValues(alpha: 0.4),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (desc != null && desc.isNotEmpty) ...[
-                              const SizedBox(height: 3),
-                              Text(
-                                desc,
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: cs.onSurface.withValues(alpha: 0.55),
-                                  height: 1.35,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert, size: 18, color: cs.onSurface.withValues(alpha: 0.5)),
-                        onSelected: (v) {
-                          if (v == 'edit') _editCollection(col);
-                          if (v == 'delete') _deleteCollection(col);
-                        },
-                        itemBuilder: (_) => const [
-                          PopupMenuItem(value: 'edit', child: Text('Edit')),
-                          PopupMenuItem(value: 'delete', child: Text('Delete')),
-                        ],
-                      ),
+                _SectionHeader(
+                  icon: Icons.playlist_play,
+                  title: col['name'] as String,
+                  subtitle: col['description'] as String?,
+                  count: texts.length,
+                  onShare: () => _shareCollection(col['name'] as String, texts),
+                  menu: PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert, size: 18, color: cs.onSurface.withValues(alpha: 0.5)),
+                    onSelected: (v) {
+                      if (v == 'edit') _editCollection(col);
+                      if (v == 'delete') _deleteCollection(col);
+                    },
+                    itemBuilder: (_) => const [
+                      PopupMenuItem(value: 'edit', child: Text('Edit')),
+                      PopupMenuItem(value: 'delete', child: Text('Delete')),
                     ],
                   ),
                 ),
@@ -178,38 +192,12 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
                     ),
                   )
                 else
-                  ...texts.map((t) => InkWell(
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => SuttaReaderScreen(textId: t.id)),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(t.title,
-                                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                                    if (t.author.isNotEmpty) ...[
-                                      const SizedBox(height: 2),
-                                      Text(t.author,
-                                          style: TextStyle(
-                                              fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5))),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              Icon(Icons.arrow_forward_ios, size: 11, color: cs.onSurface.withValues(alpha: 0.35)),
-                            ],
-                          ),
-                        ),
-                      )),
+                  ..._buildTextRows(context, texts, cs),
                 const Divider(height: 1),
               ],
             );
           }),
+
           const SizedBox(height: 16),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -219,6 +207,105 @@ class _CollectionsScreenState extends State<CollectionsScreen> {
               onPressed: _createCollection,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildTextRows(BuildContext context, List<TextItem> texts, ColorScheme cs) {
+    return texts.map((t) => InkWell(
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => SuttaReaderScreen(textId: t.id)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(t.title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  if (t.author.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(t.author,
+                        style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5))),
+                  ],
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 11, color: cs.onSurface.withValues(alpha: 0.35)),
+          ],
+        ),
+      ),
+    )).toList();
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final int count;
+  final VoidCallback? onShare;
+  final Widget? menu;
+
+  const _SectionHeader({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.count,
+    this.onShare,
+    required this.menu,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: cs.primary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text(title,
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w800, color: cs.onSurface)),
+                    const SizedBox(width: 6),
+                    Text('$count',
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: cs.onSurface.withValues(alpha: 0.4))),
+                  ],
+                ),
+                if (subtitle != null && subtitle!.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Text(subtitle!,
+                      style: TextStyle(
+                          fontSize: 13,
+                          color: cs.onSurface.withValues(alpha: 0.55),
+                          height: 1.35)),
+                ],
+              ],
+            ),
+          ),
+          if (onShare != null)
+            IconButton(
+              icon: Icon(Icons.share_outlined, size: 18, color: cs.onSurface.withValues(alpha: 0.5)),
+              tooltip: 'Share collection',
+              onPressed: onShare,
+            ),
+          if (menu != null) menu!,
         ],
       ),
     );

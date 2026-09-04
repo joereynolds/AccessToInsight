@@ -16,7 +16,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1918–1992',
         bio: 'Famed for his earthy, humorous, and direct similes pointing immediately to the nature of the mind and letting go.',
         collection: 'thai/chah',
-        icon: Icons.nature_people_outlined,
       ),
       _MasterInfo(
         slug: 'lee',
@@ -25,7 +24,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1907–1961',
         bio: 'Master of breath meditation (ānāpānasati), jhāna concentration, and channeling breath energy through the body.',
         collection: 'thai/lee',
-        icon: Icons.air_outlined,
       ),
       _MasterInfo(
         slug: 'boowa',
@@ -34,7 +32,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1913–2011',
         bio: 'Renowned for his uncompromising ascetic vigor, profound talks on the citta (mind), and the biography of Ajaan Mun.',
         collection: 'thai/boowa',
-        icon: Icons.shield_outlined,
       ),
       _MasterInfo(
         slug: 'mun',
@@ -43,7 +40,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1870–1949',
         bio: 'The towering founding father of the modern Thai Forest meditation lineage who revived forest ascetic wandering (dhutaṅga).',
         collection: 'thai/mun',
-        icon: Icons.terrain_outlined,
       ),
       _MasterInfo(
         slug: 'kee',
@@ -52,7 +48,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1901–1978',
         bio: 'One of the foremost female lay practitioners of Thailand, famed for penetrative mindfulness instructions and self-honesty.',
         collection: 'thai/kee',
-        icon: Icons.spa_outlined,
       ),
       _MasterInfo(
         slug: 'fuang',
@@ -61,7 +56,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1915–1986',
         bio: 'Primary disciple of Ajaan Lee and teacher of Thanissaro Bhikkhu; master of practical, down-to-earth Dhamma wisdom.',
         collection: 'thai/fuang',
-        icon: Icons.psychology_outlined,
       ),
       _MasterInfo(
         slug: 'dune',
@@ -70,7 +64,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1888–1983',
         bio: 'Senior disciple of Ajaan Mun; celebrated for his concise, laser-sharp maxims on the mind stopping thought in its tracks.',
         collection: 'thai/dune',
-        icon: Icons.lightbulb_outline,
       ),
       _MasterInfo(
         slug: 'thate',
@@ -79,7 +72,6 @@ class ThaiForestScreen extends StatelessWidget {
         years: '1902–1994',
         bio: 'Long-standing forest meditation elder whose clear manuals on "Buddho" meditation guided thousands of monks and lay meditators.',
         collection: 'thai/thate',
-        icon: Icons.wb_sunny_outlined,
       ),
     ];
 
@@ -102,36 +94,20 @@ class ThaiForestScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 40),
         children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.forest,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'The Living Forest Tradition',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'The Living Forest Tradition',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 const Text(
                   "Founded in the deep jungles of northeast Thailand by Ajaan Mun, the Forest Tradition returns to the simplicity, wilderness austerity, and practical meditation of the Buddha's original disciples.",
                   style: TextStyle(fontSize: 13, height: 1.45),
@@ -170,11 +146,6 @@ class ThaiForestScreen extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: cs.primary.withValues(alpha: 0.12),
-                    child: Icon(m.icon, color: cs.primary),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,7 +236,6 @@ class _MasterInfo {
   final String years;
   final String bio;
   final String collection;
-  final IconData icon;
 
   _MasterInfo({
     required this.slug,
@@ -274,6 +244,5 @@ class _MasterInfo {
     required this.years,
     required this.bio,
     required this.collection,
-    required this.icon,
   });
 }
