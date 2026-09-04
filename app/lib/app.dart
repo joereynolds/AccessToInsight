@@ -86,8 +86,8 @@ class _MainNavigationScaffoldState extends State<MainNavigationScaffold> {
             label: 'Explore',
           ),
           NavigationDestination(
-            icon: Icon(Icons.forest_outlined),
-            selectedIcon: Icon(Icons.forest),
+            icon: Icon(Icons.local_library_outlined),
+            selectedIcon: Icon(Icons.local_library),
             label: 'Library',
           ),
           NavigationDestination(

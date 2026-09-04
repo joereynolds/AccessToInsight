@@ -34,11 +34,28 @@ class DatabaseService {
       databaseFactory = databaseFactoryFfi;
     }
 
+    const int _kExpectedDbVersion = 6;
+
     final docsDir = await getApplicationDocumentsDirectory();
     final dbPath = p.join(docsDir.path, 'ati_data.db');
     final dbFile = File(dbPath);
 
-    if (!await dbFile.exists() || await dbFile.length() < 1000000) {
+    bool needsCopy = !await dbFile.exists() || await dbFile.length() < 1000000;
+
+    // Check user_version of the installed DB; re-copy if outdated.
+    if (!needsCopy) {
+      try {
+        final checkDb = await openDatabase(dbPath, readOnly: true);
+        final versionResult = await checkDb.rawQuery('PRAGMA user_version');
+        final installedVersion = versionResult.first.values.first as int? ?? 0;
+        await checkDb.close();
+        if (installedVersion < _kExpectedDbVersion) needsCopy = true;
+      } catch (_) {
+        needsCopy = true;
+      }
+    }
+
+    if (needsCopy) {
       initStatusNotifier.value = 'Preparing Access to Insight canon...';
       initProgressNotifier.value = 0.2;
 
@@ -74,9 +91,14 @@ class DatabaseService {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         description TEXT,
+        is_default INTEGER DEFAULT 0,
         created_at INTEGER NOT NULL
       )
     ''');
+    // Migrate: add is_default column to existing installs
+    try {
+      await db.execute('ALTER TABLE collections ADD COLUMN is_default INTEGER DEFAULT 0');
+    } catch (_) {}
     await db.execute('''
       CREATE TABLE IF NOT EXISTS collection_items (
         collection_id INTEGER NOT NULL,
@@ -86,7 +108,34 @@ class DatabaseService {
         FOREIGN KEY (collection_id) REFERENCES collections(id) ON DELETE CASCADE
       )
     ''');
+    // Seed the "Saved" default collection if it doesn't exist yet
+    final savedRows = await db.query('collections', where: 'is_default = 1', limit: 1);
+    if (savedRows.isEmpty) {
+      final savedId = await db.insert('collections', {
+        'name': 'Saved',
+        'is_default': 1,
+        'created_at': DateTime.now().millisecondsSinceEpoch,
+      });
+      // Migrate any existing bookmarks into the Saved collection
+      final bmCheck = await db.rawQuery(
+        "SELECT COUNT(*) as c FROM sqlite_master WHERE type='table' AND name='bookmarks'",
+      );
+      final hasBm = (bmCheck.first['c'] as int? ?? 0);
+      if (hasBm > 0) {
+        await db.rawInsert('''
+          INSERT OR IGNORE INTO collection_items (collection_id, text_id, added_at)
+          SELECT ?, text_id, created_at FROM bookmarks
+        ''', [savedId]);
+        await db.execute('DROP TABLE bookmarks');
+      }
+    }
     return db;
+  }
+
+  Future<int> _savedCollectionId() async {
+    final db = await database;
+    final rows = await db.query('collections', columns: ['id'], where: 'is_default = 1', limit: 1);
+    return rows.first['id'] as int;
   }
 
   // --- Collections ---
@@ -261,44 +310,54 @@ class DatabaseService {
     final db = await database;
     final cleanQ = query.trim();
 
-    // 1. Try Sutta Ref match e.g. "DN 11" or "MN 10" or "SN 56"
+    // 1. Sutta ref short match e.g. "DN 11" or "MN 10"
     final exactRef = await db.query(
       'texts',
-      where: 'sutta_ref LIKE ? OR title LIKE ?',
-      whereArgs: ['%$cleanQ%', '%$cleanQ%'],
+      where: 'sutta_ref LIKE ?',
+      whereArgs: ['%$cleanQ%'],
       limit: limit,
     );
     if (exactRef.isNotEmpty && cleanQ.length <= 10) {
       return exactRef.map((e) => TextItem.fromMap(e)).toList();
     }
 
-    // 2. FTS5 Search
+    // 2. Title LIKE match — always the highest priority bucket
+    final titleRows = await db.query(
+      'texts',
+      where: 'title LIKE ?',
+      whereArgs: ['%$cleanQ%'],
+      limit: limit,
+    );
+    final titleIds = {for (final r in titleRows) r['id'] as String};
+
+    // 3. FTS5 full-text search for the remainder
+    List<Map<String, dynamic>> ftsRows = [];
     try {
       final ftsQuery = cleanQ.replaceAll(RegExp(r'[^\w\s]'), '').trim();
       if (ftsQuery.isNotEmpty) {
-        final ftsRows = await db.rawQuery('''
+        final raw = await db.rawQuery('''
           SELECT texts.* FROM search_index
           JOIN texts ON texts.rowid = search_index.rowid
           WHERE search_index MATCH ?
+          ORDER BY bm25(search_index, 10, 3, 5, 2, 1, 1)
           LIMIT ?
         ''', ['$ftsQuery*', limit]);
-
-        if (ftsRows.isNotEmpty) {
-          return ftsRows.map((e) => TextItem.fromMap(e)).toList();
-        }
+        ftsRows = raw.where((r) => !titleIds.contains(r['id'] as String)).toList();
       }
     } catch (e) {
       debugPrint('FTS search fallback to LIKE: $e');
+      // Fallback: LIKE on all fields, excluding already-found titles
+      final likeRows = await db.query(
+        'texts',
+        where: 'title NOT LIKE ? AND (summary LIKE ? OR author LIKE ? OR content_plain LIKE ?)',
+        whereArgs: ['%$cleanQ%', '%$cleanQ%', '%$cleanQ%', '%$cleanQ%'],
+        limit: limit,
+      );
+      ftsRows = likeRows;
     }
 
-    // 3. Fallback LIKE search
-    final likeRows = await db.query(
-      'texts',
-      where: 'title LIKE ? OR summary LIKE ? OR author LIKE ? OR content_plain LIKE ?',
-      whereArgs: ['%$cleanQ%', '%$cleanQ%', '%$cleanQ%', '%$cleanQ%'],
-      limit: limit,
-    );
-    return likeRows.map((e) => TextItem.fromMap(e)).toList();
+    final combined = [...titleRows, ...ftsRows];
+    return combined.take(limit).map((e) => TextItem.fromMap(e)).toList();
   }
 
   // --- Thai Forest Tradition Masters ---
@@ -317,26 +376,52 @@ class DatabaseService {
   // --- Authors Directory ---
   Future<List<Map<String, dynamic>>> getAuthorsDirectory() async {
     final db = await database;
+    // Group by author_short for consistent counts, use authors table for canonical name.
+    // Exclude lib/authors/*/index.html pages — they are author bios indexed as stubs, not real texts.
     final rows = await db.rawQuery('''
-      SELECT author, author_short, COUNT(*) as text_count
-      FROM texts
-      WHERE author != '' AND author != 'Anonymous'
-      GROUP BY author
+      SELECT t.author_short,
+             COALESCE(a.name, MIN(CASE WHEN t.author != '' THEN t.author ELSE NULL END)) as author,
+             COUNT(*) as text_count
+      FROM texts t
+      LEFT JOIN authors a ON lower(a.author_short) = lower(t.author_short)
+                          OR a.slug = lower(t.author_short)
+      WHERE t.author_short != ''
+        AND t.author_short != 'Anonymous'
+        AND t.author_short != 'Various authors'
+        AND t.path NOT GLOB 'lib/authors/*/index.html'
+      GROUP BY t.author_short
+      HAVING author IS NOT NULL AND author != ''
       ORDER BY text_count DESC
     ''');
     return rows;
   }
 
-  Future<List<TextItem>> getTextsByAuthor(String author, {int limit = 100}) async {
+  Future<List<TextItem>> getTextsByAuthor(String authorShort) async {
     final db = await database;
-    final rows = await db.query(
-      'texts',
-      where: 'author = ? OR author_short = ?',
-      whereArgs: [author, author],
-      orderBy: 'title ASC',
-      limit: limit,
+    final rows = await db.rawQuery(
+      "SELECT * FROM texts WHERE author_short = ? AND path NOT GLOB 'lib/authors/*/index.html' ORDER BY title ASC",
+      [authorShort],
     );
     return rows.map((e) => TextItem.fromMap(e)).toList();
+  }
+
+  Future<Map<String, dynamic>?> getAuthorBio(String authorShort) async {
+    try {
+      final db = await database;
+      // Primary lookup: author_short column (back-filled during DB build)
+      var rows = await db.rawQuery(
+        'SELECT * FROM authors WHERE lower(author_short) = ? LIMIT 1',
+        [authorShort.toLowerCase()],
+      );
+      // Fallback: slug exact match
+      if (rows.isEmpty) {
+        rows = await db.query('authors', where: 'slug = ?', whereArgs: [authorShort.toLowerCase()], limit: 1);
+      }
+      return rows.isNotEmpty ? rows.first : null;
+    } catch (e) {
+      debugPrint('getAuthorBio error: $e');
+      return null;
+    }
   }
 
   // --- Study Guides ---
@@ -474,36 +559,25 @@ class DatabaseService {
   }
 
   // --- User Bookmarks & History ---
+  // "Bookmark" = saved to the default Saved collection.
   Future<bool> isBookmarked(String textId) async {
+    final savedId = await _savedCollectionId();
     final db = await database;
-    final rows = await db.query('bookmarks', where: 'text_id = ?', whereArgs: [textId], limit: 1);
+    final rows = await db.query('collection_items',
+        where: 'collection_id = ? AND text_id = ?', whereArgs: [savedId, textId], limit: 1);
     return rows.isNotEmpty;
   }
 
-  Future<bool> toggleBookmark(String textId, {String? note}) async {
-    final db = await database;
+  Future<bool> toggleBookmark(String textId) async {
+    final savedId = await _savedCollectionId();
     final exists = await isBookmarked(textId);
     if (exists) {
-      await db.delete('bookmarks', where: 'text_id = ?', whereArgs: [textId]);
+      await removeFromCollection(savedId, textId);
       return false;
     } else {
-      await db.insert('bookmarks', {
-        'text_id': textId,
-        'created_at': DateTime.now().millisecondsSinceEpoch,
-        'note': note,
-      });
+      await addToCollection(savedId, textId);
       return true;
     }
-  }
-
-  Future<List<TextItem>> getBookmarkedTexts() async {
-    final db = await database;
-    final rows = await db.rawQuery('''
-      SELECT texts.* FROM bookmarks
-      JOIN texts ON texts.id = bookmarks.text_id
-      ORDER BY bookmarks.created_at DESC
-    ''');
-    return rows.map((e) => TextItem.fromMap(e)).toList();
   }
 
   Future<void> updateReadingProgress(String textId, double progress) async {

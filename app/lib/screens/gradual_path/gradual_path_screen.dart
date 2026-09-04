@@ -56,37 +56,21 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // Explanatory Intro Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                    ),
-                  ),
+                // Explanatory Intro
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 0, 4, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.auto_stories,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'How the Buddha Taught',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'How the Buddha Taught',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         'The Buddha frequently guided newcomers through a progressive framework called "gradual instruction" (anupubbī-kathā). Starting from generosity, through ethical integrity and heaven, he then demonstrated the drawbacks of clinging, the freedom of renunciation, and finally revealed the Four Noble Truths.',
                         style: TextStyle(
@@ -110,17 +94,6 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
   Widget _buildStepCard(BuildContext context, PtfSection s) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final icons = [
-      Icons.volunteer_activism_outlined,
-      Icons.verified_user_outlined,
-      Icons.cloud_outlined,
-      Icons.warning_amber_outlined,
-      Icons.self_improvement_outlined,
-      Icons.stars_outlined,
-    ];
-
-    final icon = icons[(s.stepOrder - 1) % icons.length];
-
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
       child: InkWell(
@@ -135,22 +108,12 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    '${s.stepOrder}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
+              Text(
+                '${s.stepOrder}',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(width: 14),
@@ -158,17 +121,9 @@ class _GradualPathScreenState extends State<GradualPathScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            s.title,
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
-                      ],
+                    Text(
+                      s.title,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
                     Text(

@@ -95,85 +95,60 @@ Access to Insight
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
-                // Chapter Horizontal Selector Bar
-                Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: cs.surfaceContainerHighest,
-                    border: Border(
-                      bottom: BorderSide(color: cs.outlineVariant),
-                    ),
-                  ),
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    itemCount: _chapters.length,
-                    itemBuilder: (ctx, i) {
-                      final c = _chapters[i];
+                // Chapter picker row
+                Material(
+                  color: cs.surfaceContainerHighest,
+                  child: PopupMenuButton<int>(
+                    onSelected: (cNum) {
+                      final c = _chapters.firstWhere((c) => c['chapter_num'] == cNum);
+                      _selectChapter(cNum, c['chapter_title'] as String);
+                    },
+                    itemBuilder: (_) => _chapters.map((c) {
                       final cNum = c['chapter_num'] as int;
                       final isSelected = cNum == _selectedChapter;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text('Ch. $cNum: ${c['chapter_title']}'),
-                          selected: isSelected,
-                          selectedColor: cs.primary.withValues(alpha: 0.2),
-                          labelStyle: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                      return PopupMenuItem<int>(
+                        value: cNum,
+                        child: Text(
+                          'Ch. $cNum: ${c['chapter_title']}',
+                          style: TextStyle(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                             color: isSelected ? cs.primary : null,
                           ),
-                          onSelected: (selected) {
-                            if (selected) {
-                              _selectChapter(cNum, c['chapter_title'] as String);
-                            }
-                          },
                         ),
                       );
-                    },
+                    }).toList(),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      child: Row(
+                        children: [
+                          Text(
+                            'Chapter $_selectedChapter',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: cs.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.arrow_drop_down, size: 18, color: cs.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              _selectedChapterTitle,
+                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Text(
+                            '${_verses.length} verses',
+                            style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5)),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-
-                // Selected Chapter Header Card
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: cs.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Chapter $_selectedChapter',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: cs.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          _selectedChapterTitle,
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        '${_verses.length} verses',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: cs.onSurface.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                Divider(height: 1, color: cs.outlineVariant),
 
                 // Verses List
                 Expanded(
@@ -198,21 +173,8 @@ Access to Insight
                                       children: [
                                         Row(
                                           children: [
-                                            CircleAvatar(
-                                              radius: 12,
-                                              backgroundColor: cs.primary.withValues(alpha: 0.12),
-                                              child: Text(
-                                                '${v.verseNum}',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: cs.primary,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
                                             Text(
-                                              'Dhp ${v.verseNum}',
+                                              '${v.verseNum}',
                                               style: TextStyle(
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.w700,

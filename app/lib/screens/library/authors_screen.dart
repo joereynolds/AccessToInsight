@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/text_item.dart';
 import '../../services/database_service.dart';
+import '../../utils.dart';
 import '../reader/sutta_reader_screen.dart';
 
 class AuthorsScreen extends StatefulWidget {
@@ -107,11 +108,16 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                         subtitle: Text('$count translations & essays'),
                         trailing: const Icon(Icons.arrow_forward_ios, size: 13),
                         onTap: () async {
-                          final texts = await DatabaseService.instance.getTextsByAuthor(name);
+                          final authorShort = a['author_short'] as String? ?? '';
+                          final texts = await DatabaseService.instance.getTextsByAuthor(authorShort);
                           if (context.mounted) {
                             Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (_) => AuthorWorksScreen(authorName: name, texts: texts),
+                                builder: (_) => AuthorWorksScreen(
+                                  authorName: name,
+                                  authorSlug: authorShort.toLowerCase(),
+                                  texts: texts,
+                                ),
                               ),
                             );
                           }
@@ -126,40 +132,91 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
   }
 }
 
-class AuthorWorksScreen extends StatelessWidget {
+class AuthorWorksScreen extends StatefulWidget {
   final String authorName;
+  final String authorSlug;
   final List<TextItem> texts;
 
-  const AuthorWorksScreen({super.key, required this.authorName, required this.texts});
+  const AuthorWorksScreen({
+    super.key,
+    required this.authorName,
+    required this.authorSlug,
+    required this.texts,
+  });
+
+  @override
+  State<AuthorWorksScreen> createState() => _AuthorWorksScreenState();
+}
+
+class _AuthorWorksScreenState extends State<AuthorWorksScreen> {
+  String? _bio;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBio();
+  }
+
+  Future<void> _loadBio() async {
+    try {
+      final row = await DatabaseService.instance.getAuthorBio(widget.authorSlug);
+      if (mounted && row != null) {
+        setState(() => _bio = row['bio'] as String?);
+      }
+    } catch (e) {
+      debugPrint('getAuthorBio: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(authorName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+            Text(widget.authorName, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
             Text(
-              '${texts.length} works',
-              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+              '${widget.texts.length} works',
+              style: TextStyle(fontSize: 12, color: cs.onSurface.withValues(alpha: 0.5)),
             ),
           ],
         ),
       ),
       body: ListView.separated(
         padding: const EdgeInsets.symmetric(vertical: 8),
-        itemCount: texts.length,
-        separatorBuilder: (_, __) => const Divider(height: 1),
+        itemCount: widget.texts.length + (_bio != null ? 1 : 0),
+        separatorBuilder: (_, i) => i == 0 && _bio != null ? const SizedBox.shrink() : const Divider(height: 1),
         itemBuilder: (ctx, i) {
-          final t = texts[i];
+          if (_bio != null && i == 0) {
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Text(
+                _bio!,
+                style: TextStyle(fontSize: 13, height: 1.5, color: cs.onSurface.withValues(alpha: 0.7)),
+              ),
+            );
+          }
+          final t = widget.texts[_bio != null ? i - 1 : i];
+          final ref = t.suttaRef ?? (t.subtitle != null ? stripHtml(t.subtitle!) : '');
           return ListTile(
             title: Text(t.title, style: const TextStyle(fontWeight: FontWeight.w600)),
-            subtitle: Text(
-              t.suttaRef ?? t.subtitle ?? '',
-              style: const TextStyle(fontSize: 12),
+            subtitle: ref.isNotEmpty
+                ? Text(ref, style: const TextStyle(fontSize: 12))
+                : null,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${t.readingTimeMinutes} min',
+                  style: TextStyle(fontSize: 11, color: cs.onSurface.withValues(alpha: 0.45)),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward_ios, size: 13),
+              ],
             ),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 13),
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => SuttaReaderScreen(textId: t.id)),

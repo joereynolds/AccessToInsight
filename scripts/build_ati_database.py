@@ -3,8 +3,10 @@ import os
 import re
 import html
 import sqlite3
+from html.parser import HTMLParser
 import gzip
 import json
+
 
 CHUNK_RE = re.compile(r"<div id='COPYRIGHTED_TEXT_CHUNK'>\s*<!-- BEGIN COPYRIGHTED TEXT CHUNK -->(.*?)<!-- #COPYRIGHTED_TEXT_CHUNK", re.DOTALL)
 FALLBACK_CHUNK_RE = re.compile(r"<div id='H_content'>(.*?)<!--\s*#H_content", re.DOTALL)
@@ -270,6 +272,15 @@ def build_database(repo_root: str, out_db_path: str):
     );
     """)
 
+    cur.execute("""
+    CREATE TABLE authors (
+        slug TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        bio TEXT,
+        author_short TEXT
+    );
+    """)
+
     # 1. Walk and index all HTML files
     excluded_dirs = {'.git', 'app', 'tech', 'css', 'js', 'img', 'news', 'scripts'}
     excluded_files = {'404.html', 'search_results.html', 'random-article.html', 'random-sutta.html', 
@@ -335,11 +346,15 @@ def build_database(repo_root: str, out_db_path: str):
             
             plain = html_to_plain(content_html)
             words = len(plain.split())
+
+            if words == 0:
+                continue
+
             doc_id = rel_path
-            
+
             footnotes = extract_footnotes(file_text)
             fn_json = json.dumps(footnotes) if footnotes else "{}"
-            
+
             cur.execute("""
             INSERT OR REPLACE INTO texts (
                 id, path, title, subtitle, sutta_ref, nikaya, nikaya_abbrev,
@@ -477,6 +492,75 @@ def build_database(repo_root: str, out_db_path: str):
         """, cs)
     print("Indexed Daily Contemplations.")
 
+    # 8. Parse and store author bios from lib/authors/index.html
+    authors_index_path = os.path.join(repo_root, 'lib', 'authors', 'index.html')
+    if os.path.exists(authors_index_path):
+        class _AuthorIndexParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.authors = []
+                self._in_dt = False
+                self._in_dd = False
+                self._current_id = None
+                self._current_name = None
+                self._bio_parts = []
+
+            def handle_starttag(self, tag, attrs):
+                attrs_dict = dict(attrs)
+                if tag == 'dt':
+                    self._in_dt = True
+                    self._current_id = None
+                    self._current_name = None
+                if tag == 'dd' and self._current_id:
+                    self._in_dd = True
+                    self._bio_parts = []
+                # Only capture the FIRST <a id="..."> in the <dt> (the main author link)
+                if tag == 'a' and self._in_dt and 'id' in attrs_dict and self._current_id is None:
+                    self._current_id = attrs_dict['id']
+
+            def handle_endtag(self, tag):
+                if tag == 'dt':
+                    self._in_dt = False
+                if tag == 'dd' and self._in_dd:
+                    self._in_dd = False
+                    bio = ' '.join(self._bio_parts).strip()
+                    bio = re.sub(r'\[.*?\]', '', bio)
+                    bio = re.sub(r'\s+', ' ', bio).strip()
+                    if self._current_id and self._current_name:
+                        self.authors.append((self._current_id, self._current_name, bio or None))
+
+            def handle_data(self, data):
+                if self._in_dt and not self._current_name:
+                    stripped = data.strip()
+                    if stripped:
+                        self._current_name = stripped
+                if self._in_dd:
+                    self._bio_parts.append(data)
+
+        parser = _AuthorIndexParser()
+        with open(authors_index_path, 'r', encoding='utf-8', errors='ignore') as f:
+            parser.feed(f.read())
+
+        for slug, name, bio in parser.authors:
+            cur.execute(
+                'INSERT OR REPLACE INTO authors (slug, name, bio) VALUES (?, ?, ?)',
+                (slug, name, bio)
+            )
+
+        # Back-fill author_short from texts — try lib/authors/<slug>/ then lib/thai/<slug>/
+        cur.execute('''
+            UPDATE authors SET author_short = COALESCE(
+                (SELECT author_short FROM texts
+                 WHERE texts.path LIKE 'lib/authors/' || authors.slug || '/%'
+                   AND texts.author_short != '' LIMIT 1),
+                (SELECT author_short FROM texts
+                 WHERE texts.path LIKE 'lib/thai/' || authors.slug || '/%'
+                   AND texts.author_short != '' LIMIT 1)
+            )
+        ''')
+        print(f"Indexed {len(parser.authors)} author bios.")
+
+    cur.execute('PRAGMA user_version = 6')
     conn.commit()
     cur.execute("PRAGMA optimize;")
     conn.close()
